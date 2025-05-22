@@ -17,6 +17,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
+import { es } from 'date-fns/locale';
 import { cn } from "@/lib/utils";
 
 export default function ReminderGenerator() {
@@ -29,7 +30,7 @@ export default function ReminderGenerator() {
     resolver: zodResolver(AppointmentReminderSchema),
     defaultValues: {
       patientName: "",
-      appointmentDateTime: "", // Store as YYYY-MM-DDTHH:mm
+      appointmentDateTime: "", 
       location: "",
       specialInstructions: "",
     },
@@ -43,10 +44,9 @@ export default function ReminderGenerator() {
     setIsLoading(true);
     setGeneratedMessage(null);
     try {
-      // Combine date and time for the AI flow
       const combinedDateTime = selectedDate && selectedTime 
         ? `${format(selectedDate, "yyyy-MM-dd")}T${selectedTime}` 
-        : values.appointmentDateTime; // Fallback if direct input was used
+        : values.appointmentDateTime; 
       
       const inputForAI = { ...values, appointmentDateTime: combinedDateTime };
 
@@ -54,18 +54,18 @@ export default function ReminderGenerator() {
       if (result && result.reminderMessage) {
         setGeneratedMessage(result.reminderMessage);
         toast({
-          title: "Reminder Generated",
-          description: "The appointment reminder has been successfully generated.",
+          title: "Recordatorio Generado",
+          description: "El recordatorio de la cita ha sido generado exitosamente.",
         });
       } else {
-        throw new Error("Failed to generate reminder message.");
+        throw new Error("No se pudo generar el mensaje de recordatorio.");
       }
     } catch (error) {
-      console.error("Error generating reminder:", error);
+      console.error("Error generando recordatorio:", error);
       toast({
         variant: "destructive",
-        title: "Generation Failed",
-        description: error instanceof Error ? error.message : "An unknown error occurred.",
+        title: "Falló la Generación",
+        description: error instanceof Error ? error.message : "Ocurrió un error desconocido.",
       });
     } finally {
       setIsLoading(false);
@@ -76,11 +76,11 @@ export default function ReminderGenerator() {
     if (generatedMessage) {
       navigator.clipboard.writeText(generatedMessage).then(() => {
         setIsCopied(true);
-        toast({ title: "Copied to clipboard!" });
+        toast({ title: "¡Copiado al portapapeles!" });
         setTimeout(() => setIsCopied(false), 2000);
       }).catch(err => {
-        console.error("Failed to copy:", err);
-        toast({ variant: "destructive", title: "Failed to copy" });
+        console.error("Error al copiar:", err);
+        toast({ variant: "destructive", title: "Error al copiar" });
       });
     }
   };
@@ -91,10 +91,10 @@ export default function ReminderGenerator() {
         <CardHeader>
           <div className="flex items-center gap-2 mb-2">
             <Wand2 className="h-6 w-6 text-primary" />
-            <CardTitle className="text-2xl">AI Appointment Reminder</CardTitle>
+            <CardTitle className="text-2xl">Recordatorio de Cita con IA</CardTitle>
           </div>
           <CardDescription>
-            Enter appointment details to generate a personalized reminder message using AI.
+            Ingrese los detalles de la cita para generar un mensaje de recordatorio personalizado usando IA.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -105,9 +105,9 @@ export default function ReminderGenerator() {
                 name="patientName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Patient Name</FormLabel>
+                    <FormLabel>Nombre del Paciente</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., John Doe" {...field} />
+                      <Input placeholder="Ej: Carlos Ruiz" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -116,11 +116,10 @@ export default function ReminderGenerator() {
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
-                  // This field is not directly part of the schema but used for UI
-                  name="appointmentDateUI" // Dummy name
+                  name="appointmentDateUI" 
                   render={() => (
                     <FormItem className="flex flex-col">
-                      <FormLabel>Appointment Date</FormLabel>
+                      <FormLabel>Fecha de la Cita</FormLabel>
                       <Popover>
                         <PopoverTrigger asChild>
                           <FormControl>
@@ -132,7 +131,7 @@ export default function ReminderGenerator() {
                               )}
                             >
                               <CalendarIcon className="mr-2 h-4 w-4" />
-                              {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
+                              {selectedDate ? format(selectedDate, "PPP", { locale: es }) : <span>Elija una fecha</span>}
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
@@ -142,21 +141,20 @@ export default function ReminderGenerator() {
                             selected={selectedDate}
                             onSelect={setSelectedDate}
                             initialFocus
-                            disabled={(date) => date < new Date(new Date().setHours(0,0,0,0)) } // Disable past dates
+                            locale={es}
+                            disabled={(date) => date < new Date(new Date().setHours(0,0,0,0)) } 
                           />
                         </PopoverContent>
                       </Popover>
-                      {/* Basic validation message for UI */}
-                      {!selectedDate && form.formState.isSubmitted && <FormMessage>Date is required.</FormMessage>}
+                      {!selectedDate && form.formState.isSubmitted && <FormMessage>La fecha es obligatoria.</FormMessage>}
                     </FormItem>
                   )}
                 />
                 <FormField
-                  // This field is not directly part of the schema but used for UI
-                  name="appointmentTimeUI" // Dummy name
+                  name="appointmentTimeUI" 
                   render={() => (
                      <FormItem>
-                        <FormLabel>Appointment Time (HH:MM)</FormLabel>
+                        <FormLabel>Hora de la Cita (HH:MM)</FormLabel>
                         <FormControl>
                           <Input 
                             type="time" 
@@ -164,12 +162,11 @@ export default function ReminderGenerator() {
                             onChange={(e) => setSelectedTime(e.target.value)}
                           />
                         </FormControl>
-                        {!selectedTime && form.formState.isSubmitted && <FormMessage>Time is required.</FormMessage>}
+                        {!selectedTime && form.formState.isSubmitted && <FormMessage>La hora es obligatoria.</FormMessage>}
                      </FormItem>
                   )}
                 />
               </div>
-              {/* Hidden field to satisfy schema if needed, or adjust schema */}
                <FormField
                 control={form.control}
                 name="appointmentDateTime"
@@ -182,15 +179,14 @@ export default function ReminderGenerator() {
                 )}
               />
 
-
               <FormField
                 control={form.control}
                 name="location"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Location</FormLabel>
+                    <FormLabel>Ubicación</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Clinic A, Room 101" {...field} />
+                      <Input placeholder="Ej: Clínica A, Consultorio 101" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -201,16 +197,16 @@ export default function ReminderGenerator() {
                 name="specialInstructions"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Special Instructions (Optional)</FormLabel>
+                    <FormLabel>Instrucciones Especiales (Opcional)</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="e.g., Please arrive 15 minutes early." {...field} />
+                      <Textarea placeholder="Ej: Por favor, llegue 15 minutos antes." {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
               <Button type="submit" className="w-full" disabled={isLoading || !selectedDate || !selectedTime}>
-                {isLoading ? "Generating..." : "Generate Reminder"}
+                {isLoading ? "Generando..." : "Generar Recordatorio"}
                 <Wand2 className="ml-2 h-4 w-4" />
               </Button>
             </form>
@@ -222,17 +218,17 @@ export default function ReminderGenerator() {
         <CardHeader>
           <div className="flex items-center gap-2 mb-2">
             <BellRing className="h-6 w-6 text-primary" />
-            <CardTitle className="text-2xl">Generated Reminder</CardTitle>
+            <CardTitle className="text-2xl">Recordatorio Generado</CardTitle>
           </div>
           <CardDescription>
-            Review the AI-generated message below. You can copy it for use.
+            Revise el mensaje generado por IA a continuación. Puede copiarlo para usarlo.
           </CardDescription>
         </CardHeader>
         <CardContent className="h-full flex flex-col">
           {isLoading && (
             <div className="flex flex-col items-center justify-center flex-grow space-y-2">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-              <p className="text-muted-foreground">Generating your reminder...</p>
+              <p className="text-muted-foreground">Generando su recordatorio...</p>
             </div>
           )}
           {!isLoading && generatedMessage && (
@@ -242,7 +238,7 @@ export default function ReminderGenerator() {
           )}
           {!isLoading && !generatedMessage && (
             <div className="flex items-center justify-center text-center text-muted-foreground border-2 border-dashed border-input rounded-md p-8 flex-grow">
-              <p>Your generated reminder message will appear here.</p>
+              <p>Su mensaje de recordatorio generado aparecerá aquí.</p>
             </div>
           )}
         </CardContent>
@@ -250,7 +246,7 @@ export default function ReminderGenerator() {
           <CardFooter>
             <Button onClick={handleCopyToClipboard} variant="outline" className="w-full" disabled={isCopied}>
               {isCopied ? <Check className="mr-2 h-4 w-4 text-green-500" /> : <ClipboardCopy className="mr-2 h-4 w-4" />}
-              {isCopied ? "Copied!" : "Copy Message"}
+              {isCopied ? "¡Copiado!" : "Copiar Mensaje"}
             </Button>
           </CardFooter>
         )}

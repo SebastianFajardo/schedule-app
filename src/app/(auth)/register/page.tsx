@@ -11,17 +11,17 @@ export default function RegisterPage() {
            <div className="inline-flex items-center justify-center p-2 bg-primary rounded-full mb-3 mx-auto">
             <UserPlus className="h-10 w-10 text-primary-foreground" />
           </div>
-          <CardTitle className="text-3xl font-bold text-primary">User Registration</CardTitle>
-          <CardDescription>Account creation for MediSchedule is managed by system administrators.</CardDescription>
+          <CardTitle className="text-3xl font-bold text-primary">Registro de Usuario</CardTitle>
+          <CardDescription>La creación de cuentas para MediSchedule es gestionada por administradores del sistema.</CardDescription>
         </CardHeader>
         <CardContent className="text-center">
           <p className="text-muted-foreground mb-6">
-            If you are a new patient or medical staff member and require access, please contact your designated administrator or support team to have an account created for you.
+            Si eres un nuevo paciente o miembro del personal médico y necesitas acceso, por favor contacta a tu administrador designado o equipo de soporte para que te creen una cuenta.
           </p>
           <Stethoscope className="h-16 w-16 text-primary mx-auto mb-4" />
           <Link href="/login">
             <Button variant="outline" className="w-full">
-              Return to Login
+              Volver a Iniciar Sesión
             </Button>
           </Link>
         </CardContent>

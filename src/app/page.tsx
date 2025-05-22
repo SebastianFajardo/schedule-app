@@ -14,37 +14,37 @@ export default function LandingPage() {
           MediSchedule
         </h1>
         <p className="mt-3 text-xl text-foreground/80 max-w-xl mx-auto">
-          Your trusted partner for seamless medical appointment management.
+          Tu aliado de confianza para la gestión eficiente de citas médicas.
         </p>
       </header>
 
       <main className="grid md:grid-cols-2 gap-8 max-w-4xl w-full mb-12">
         <FeatureCard
           icon={<CalendarCheck className="h-8 w-8 text-primary" />}
-          title="Effortless Scheduling"
-          description="Easily book, reschedule, or cancel appointments with our intuitive calendar system."
+          title="Programación Sencilla"
+          description="Agenda, reprograma o cancela citas fácilmente con nuestro intuitivo sistema de calendario."
         />
         <FeatureCard
           icon={<BellRing className="h-8 w-8 text-primary" />}
-          title="Automated Reminders"
-          description="Never miss an appointment with smart, AI-powered reminders sent directly to you."
+          title="Recordatorios Automatizados"
+          description="No te pierdas ninguna cita con recordatorios inteligentes potenciados por IA, enviados directamente a ti."
         />
         <FeatureCard
           icon={<Users className="h-8 w-8 text-primary" />}
-          title="Patient & Staff Portals"
-          description="Dedicated interfaces for patients and medical staff for streamlined communication."
+          title="Portales Paciente y Personal"
+          description="Interfaces dedicadas para pacientes y personal médico para una comunicación optimizada."
         />
         <FeatureCard
           icon={<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg>}
-          title="Comprehensive Management"
-          description="Manage specialties, professionals, availability, and patient records all in one place."
+          title="Gestión Integral"
+          description="Administra especialidades, profesionales, disponibilidad y registros de pacientes, todo en un solo lugar."
         />
       </main>
 
       <footer className="text-center">
         <Link href="/login">
           <Button size="lg" className="rounded-full shadow-md hover:shadow-lg transition-shadow">
-            Access Your Portal
+            Accede a Tu Portal
           </Button>
         </Link>
         <p className="mt-4 text-sm text-muted-foreground">

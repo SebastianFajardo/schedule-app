@@ -9,49 +9,49 @@ import type { Appointment } from "@/types";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { CalendarDays, Clock, UserCircle } from "lucide-react";
+import { es } from 'date-fns/locale'; // Import Spanish locale
 
-// Mock appointments data
+// Mock appointments data (Consider moving to lib/data.ts for consistency)
 const mockAppointments: Appointment[] = [
   {
-    id: "1",
-    patientName: "John Doe",
-    doctorName: "Dr. Smith",
-    specialty: "Cardiology",
-    dateTime: new Date(new Date().setDate(new Date().getDate() + 2)), // 2 days from now
-    status: "Scheduled",
-    location: "Room 101",
+    id: "cal-1",
+    patientName: "Carlos Ruiz",
+    doctorName: "Dra. Pérez",
+    specialty: "Pediatría",
+    dateTime: new Date(new Date().setDate(new Date().getDate() + 2)),
+    status: "Programada",
+    location: "Consultorio 101",
   },
   {
-    id: "2",
-    patientName: "Jane Roe",
-    doctorName: "Dr. Emily Carter",
-    specialty: "Pediatrics",
-    dateTime: new Date(new Date().setDate(new Date().getDate() + 2)), // Same day, different time
-    status: "Scheduled",
-    location: "Clinic A",
+    id: "cal-2",
+    patientName: "Ana García",
+    doctorName: "Dra. Ana Pérez",
+    specialty: "Pediatría",
+    dateTime: new Date(new Date().setDate(new Date().getDate() + 2)), 
+    status: "Programada",
+    location: "Clínica A",
   },
   {
-    id: "3",
-    patientName: "Mike Ross",
-    doctorName: "Dr. Johnson",
-    specialty: "Neurology",
-    dateTime: new Date(new Date().setDate(new Date().getDate() + 5)), // 5 days from now
-    status: "Pending Approval",
-    location: "Main Hospital",
+    id: "cal-3",
+    patientName: "Miguel Torres",
+    doctorName: "Dr. Vargas",
+    specialty: "Neurología",
+    dateTime: new Date(new Date().setDate(new Date().getDate() + 5)), 
+    status: "Pendiente de Aprobación",
+    location: "Hospital Central",
   },
   {
-    id: "4",
-    patientName: "Alice Wonderland",
-    doctorName: "Dr. Emily Carter",
-    specialty: "Pediatrics",
+    id: "cal-4",
+    patientName: "Lucía Fer",
+    doctorName: "Dra. Ana Pérez",
+    specialty: "Pediatría",
     dateTime: addDays(new Date(), 10),
-    status: "Scheduled",
-    location: "Clinic B",
+    status: "Programada",
+    location: "Clínica B",
   },
 ];
 
 
-// Mock available slots (simplified)
 const availableSlots: Date[] = [
   addDays(new Date(), 3),
   addDays(new Date(), 4),
@@ -74,7 +74,7 @@ export default function AppointmentCalendarView() {
     const isAvailable = isSlotAvailable(date);
 
     let badgeVariant: "default" | "secondary" | "destructive" | "outline" = "default";
-    if (dayAppointments.some(app => app.status === "Pending Approval")) badgeVariant = "secondary";
+    if (dayAppointments.some(app => app.status === "Pendiente de Aprobación")) badgeVariant = "secondary";
     else if (dayAppointments.length > 0) badgeVariant = "default";
     
     return (
@@ -86,7 +86,7 @@ export default function AppointmentCalendarView() {
           </Badge>
         )}
         {isAvailable && dayAppointments.length === 0 && (
-           <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-green-500" title="Available Slot"></span>
+           <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-green-500" title="Horario Disponible"></span>
         )}
       </div>
     );
@@ -96,8 +96,8 @@ export default function AppointmentCalendarView() {
     <div className="grid md:grid-cols-3 gap-6">
       <Card className="md:col-span-2 shadow-lg">
         <CardHeader>
-          <CardTitle>Appointment Calendar</CardTitle>
-          <CardDescription>View scheduled appointments and available slots. Click on a date to see details.</CardDescription>
+          <CardTitle>Calendario de Citas</CardTitle>
+          <CardDescription>Vea citas programadas y horarios disponibles. Haga clic en una fecha para ver detalles.</CardDescription>
         </CardHeader>
         <CardContent>
           <Calendar
@@ -107,18 +107,19 @@ export default function AppointmentCalendarView() {
             month={month}
             onMonthChange={setMonth}
             className="rounded-md border p-0"
+            locale={es} // Add Spanish locale
             classNames={{
-              day_cell: "h-12 w-12 text-sm p-0 relative", // Adjusted for custom content
+              day_cell: "h-12 w-12 text-sm p-0 relative",
             }}
             components={{
-              DayContent: DayCellContent, // Custom component for day cell rendering
+              DayContent: DayCellContent, 
             }}
             modifiers={{ 
               hasAppointments: mockAppointments.map(app => startOfDay(app.dateTime)),
               isAvailable: availableSlots.map(slot => startOfDay(slot)),
             }}
             modifiersClassNames={{
-              hasAppointments: "relative", // Allows absolute positioning of badges
+              hasAppointments: "relative", 
               isAvailable: "border-2 border-green-500 rounded-md"
             }}
           />
@@ -128,10 +129,10 @@ export default function AppointmentCalendarView() {
       <Card className="shadow-lg h-fit">
         <CardHeader>
           <CardTitle>
-            {selectedDate ? format(selectedDate, "PPP") : "Select a Date"}
+            {selectedDate ? format(selectedDate, "PPP", { locale: es }) : "Seleccione una Fecha"}
           </CardTitle>
           <CardDescription>
-            {selectedDate ? "Details for the selected date." : "No date selected."}
+            {selectedDate ? "Detalles para la fecha seleccionada." : "Ninguna fecha seleccionada."}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -139,11 +140,11 @@ export default function AppointmentCalendarView() {
             <ul className="space-y-3">
               {appointmentsForSelectedDay.map(app => (
                 <li key={app.id} className="p-3 rounded-md border bg-card hover:bg-muted/50 transition-colors">
-                  <p className="font-semibold text-sm text-primary">{app.specialty} with {app.doctorName}</p>
-                  <p className="text-xs text-muted-foreground">Patient: {app.patientName}</p>
-                  <p className="text-xs text-muted-foreground">Time: {format(app.dateTime, "p")}</p>
-                  <p className="text-xs text-muted-foreground">Location: {app.location}</p>
-                  <Badge variant={app.status === "Scheduled" ? "default" : "secondary"} className="mt-1 text-xs">
+                  <p className="font-semibold text-sm text-primary">{app.specialty} con {app.doctorName}</p>
+                  <p className="text-xs text-muted-foreground">Paciente: {app.patientName}</p>
+                  <p className="text-xs text-muted-foreground">Hora: {format(app.dateTime, "p", { locale: es })}</p>
+                  <p className="text-xs text-muted-foreground">Lugar: {app.location}</p>
+                  <Badge variant={app.status === "Programada" ? "default" : "secondary"} className="mt-1 text-xs">
                     {app.status}
                   </Badge>
                 </li>
@@ -153,20 +154,20 @@ export default function AppointmentCalendarView() {
           {selectedDate && appointmentsForSelectedDay.length === 0 && isSlotAvailable(selectedDate) && (
             <div className="text-center py-4">
               <CalendarDays className="mx-auto h-12 w-12 text-green-500" />
-              <p className="mt-2 text-sm font-medium text-green-600">This day has available slots!</p>
-              <Button size="sm" className="mt-2 bg-accent text-accent-foreground hover:bg-accent/90">Book Slot</Button>
+              <p className="mt-2 text-sm font-medium text-green-600">¡Este día tiene horarios disponibles!</p>
+              <Button size="sm" className="mt-2 bg-accent text-accent-foreground hover:bg-accent/90">Agendar Horario</Button>
             </div>
           )}
           {selectedDate && appointmentsForSelectedDay.length === 0 && !isSlotAvailable(selectedDate) && (
             <div className="text-center py-4">
                <CalendarDays className="mx-auto h-12 w-12 text-muted-foreground" />
-              <p className="mt-2 text-sm text-muted-foreground">No appointments or available slots for this day.</p>
+              <p className="mt-2 text-sm text-muted-foreground">No hay citas ni horarios disponibles para este día.</p>
             </div>
           )}
            {!selectedDate && (
              <div className="text-center py-4 text-muted-foreground">
                 <CalendarDays className="mx-auto h-12 w-12" />
-                <p className="mt-2">Select a date on the calendar to view appointment details or available slots.</p>
+                <p className="mt-2">Seleccione una fecha en el calendario para ver detalles de citas u horarios disponibles.</p>
              </div>
            )}
         </CardContent>

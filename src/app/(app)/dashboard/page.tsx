@@ -10,9 +10,9 @@ const dashboardStats = {
   pendingRequests: 2,
   totalPatients: 120,
   recentActivity: [
-    { id: 1, text: "New appointment request from John Doe.", time: "10m ago" },
-    { id: 2, text: "Appointment with Jane Smith confirmed.", time: "1h ago" },
-    { id: 3, text: "Reminder sent to Michael B.", time: "3h ago" },
+    { id: 1, text: "Nueva solicitud de cita de Carlos Ruiz.", time: "hace 10m" },
+    { id: 2, text: "Cita con Ana García confirmada.", time: "hace 1h" },
+    { id: 3, text: "Recordatorio enviado a Miguel B.", time: "hace 3h" },
   ],
 };
 
@@ -20,34 +20,34 @@ export default function DashboardPage() {
   return (
     <div className="container mx-auto py-8 px-4 md:px-6">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">Welcome, Dr. Carter!</h1>
-        <p className="text-muted-foreground">Here's what's happening in MediSchedule today.</p>
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">¡Bienvenida, Dra. Ana Pérez!</h1>
+        <p className="text-muted-foreground">Esto es lo que está sucediendo hoy en MediSchedule.</p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
         <StatCard
-          title="Upcoming Appointments"
+          title="Citas Próximas"
           value={dashboardStats.upcomingAppointments.toString()}
           icon={<CalendarCheck className="h-6 w-6 text-primary" />}
-          description="Appointments scheduled for today."
+          description="Citas programadas para hoy."
           link="/appointments"
-          linkLabel="View All"
+          linkLabel="Ver Todas"
         />
         <StatCard
-          title="Pending Requests"
+          title="Solicitudes Pendientes"
           value={dashboardStats.pendingRequests.toString()}
           icon={<Users className="h-6 w-6 text-accent" />}
-          description="Patient requests needing approval."
+          description="Solicitudes de pacientes que necesitan aprobación."
           link="/appointments/requests"
-          linkLabel="Manage Requests"
+          linkLabel="Gestionar Solicitudes"
         />
         <StatCard
-          title="Total Patients"
+          title="Total de Pacientes"
           value={dashboardStats.totalPatients.toString()}
-          icon={<Users className="h-6 w-6 text-primary" />} // Using Users icon again for variety
-          description="Active patients in the system."
+          icon={<Users className="h-6 w-6 text-primary" />}
+          description="Pacientes activos en el sistema."
           link="/patients"
-          linkLabel="View Patients"
+          linkLabel="Ver Pacientes"
         />
       </div>
 
@@ -56,9 +56,9 @@ export default function DashboardPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Activity className="h-5 w-5 text-primary" />
-              Recent Activity
+              Actividad Reciente
             </CardTitle>
-            <CardDescription>Latest updates and notifications.</CardDescription>
+            <CardDescription>Últimas actualizaciones y notificaciones.</CardDescription>
           </CardHeader>
           <CardContent>
             <ul className="space-y-4">
@@ -79,33 +79,33 @@ export default function DashboardPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5 text-primary" />
-              Quick Actions
+              Acciones Rápidas
             </CardTitle>
-            <CardDescription>Access common tasks quickly.</CardDescription>
+            <CardDescription>Accede a tareas comunes rápidamente.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             <Link href="/appointments/new" className="block">
               <Button className="w-full justify-start" variant="outline">
-                <CalendarPlus className="mr-2 h-4 w-4" /> Register New Appointment
+                <CalendarPlus className="mr-2 h-4 w-4" /> Registrar Nueva Cita
               </Button>
             </Link>
             <Link href="/reminders" className="block">
               <Button className="w-full justify-start" variant="outline">
-                <BellRing className="mr-2 h-4 w-4" /> Send Reminder
+                <BellRing className="mr-2 h-4 w-4" /> Enviar Recordatorio
               </Button>
             </Link>
             <Link href="/availability" className="block">
               <Button className="w-full justify-start" variant="outline">
-                <CalendarCheck className="mr-2 h-4 w-4" /> Manage Availability
+                <CalendarCheck className="mr-2 h-4 w-4" /> Gestionar Disponibilidad
               </Button>
             </Link>
              <Image 
                 src="https://placehold.co/600x400.png" 
-                alt="Medical illustration" 
+                alt="Ilustración médica" 
                 width={600} 
                 height={400} 
                 className="rounded-md mt-4 aspect-[3/2] object-cover"
-                data-ai-hint="medical healthcare"
+                data-ai-hint="medicina salud"
               />
           </CardContent>
         </Card>

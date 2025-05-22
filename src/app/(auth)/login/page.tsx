@@ -5,17 +5,17 @@ import { Stethoscope, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Label } from "@/components/ui/label"; // Keep if used directly, FormLabel is preferred within Form
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useRouter } from "next/navigation"; // Corrected import
+import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 
 const loginSchema = z.object({
-  email: z.string().email({ message: "Invalid email address." }),
-  password: z.string().min(6, { message: "Password must be at least 6 characters." }),
+  email: z.string().email({ message: "Dirección de correo inválida." }),
+  password: z.string().min(6, { message: "La contraseña debe tener al menos 6 caracteres." }),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -32,34 +32,31 @@ export default function LoginPage() {
     },
   });
 
-  // Mock login function
   const onSubmit = async (data: LoginFormValues) => {
-    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
     console.log("Login data:", data);
     
-    // Mock success/failure
-    if (data.email === "staff@medischedule.com" && data.password === "password") {
+    if (data.email === "personal@medischedule.com" && data.password === "password") { // Updated credentials
       toast({
-        title: "Login Successful",
-        description: "Welcome back, Dr. Staff!",
+        title: "Inicio de Sesión Exitoso",
+        description: "¡Bienvenida de nuevo, Dra. Pérez!",
       });
-      router.push("/dashboard"); // Redirect to dashboard
-    } else if (data.email === "patient@medischedule.com" && data.password === "password") {
+      router.push("/dashboard"); 
+    } else if (data.email === "paciente@medischedule.com" && data.password === "password") { // Updated credentials
        toast({
-        title: "Login Successful",
-        description: "Welcome back!",
+        title: "Inicio de Sesión Exitoso",
+        description: "¡Bienvenido de nuevo!",
       });
-      router.push("/appointments"); // Redirect to patient appointments
+      router.push("/appointments"); 
     }
     else {
       toast({
         variant: "destructive",
-        title: "Login Failed",
-        description: "Invalid email or password. Please try again.",
+        title: "Falló el Inicio de Sesión",
+        description: "Correo o contraseña inválidos. Por favor, inténtalo de nuevo.",
       });
-      form.setError("email", { type: "manual", message: " " }); // Clear specific field error if needed
-      form.setError("password", { type: "manual", message: "Invalid credentials" });
+      form.setError("email", { type: "manual", message: " " }); 
+      form.setError("password", { type: "manual", message: "Credenciales inválidas" });
     }
   };
 
@@ -70,8 +67,8 @@ export default function LoginPage() {
           <div className="inline-flex items-center justify-center p-2 bg-primary rounded-full mb-3 mx-auto">
             <Stethoscope className="h-10 w-10 text-primary-foreground" />
           </div>
-          <CardTitle className="text-3xl font-bold text-primary">Welcome to MediSchedule</CardTitle>
-          <CardDescription>Enter your credentials to access your account</CardDescription>
+          <CardTitle className="text-3xl font-bold text-primary">Bienvenido a MediSchedule</CardTitle>
+          <CardDescription>Ingresa tus credenciales para acceder a tu cuenta</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -81,9 +78,9 @@ export default function LoginPage() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email Address</FormLabel>
+                    <FormLabel>Correo Electrónico</FormLabel>
                     <FormControl>
-                      <Input placeholder="name@example.com" {...field} />
+                      <Input placeholder="nombre@ejemplo.com" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -95,13 +92,13 @@ export default function LoginPage() {
                 render={({ field }) => (
                   <FormItem>
                     <div className="flex items-center justify-between">
-                      <FormLabel>Password</FormLabel>
+                      <FormLabel>Contraseña</FormLabel>
                       <Link
-                        href="#" // Replace with actual forgot password link
+                        href="#" 
                         className="text-sm text-primary hover:underline"
                         prefetch={false}
                       >
-                        Forgot password?
+                        ¿Olvidaste tu contraseña?
                       </Link>
                     </div>
                     <FormControl>
@@ -112,14 +109,14 @@ export default function LoginPage() {
                 )}
               />
               <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? "Signing In..." : <> <LogIn className="mr-2 h-4 w-4" /> Sign In </>}
+                {form.formState.isSubmitting ? "Iniciando Sesión..." : <> <LogIn className="mr-2 h-4 w-4" /> Iniciar Sesión </>}
               </Button>
             </form>
           </Form>
           <div className="mt-6 text-center text-sm">
-            Registration is managed by administrators.
+            El registro es gestionado por administradores.
             <br/>
-            Contact support if you need an account.
+            Contacta a soporte si necesitas una cuenta.
           </div>
         </CardContent>
       </Card>

@@ -13,82 +13,83 @@ import {
 
 export const navLinks: NavItem[] = [
   {
-    title: "Dashboard",
+    title: "Panel de Control",
     href: "/dashboard",
     icon: LayoutDashboard,
-    role: 'staff', // Staff and Admin
+    role: 'staff', 
   },
   {
-    title: "My Appointments",
+    title: "Mis Citas",
     href: "/appointments",
     icon: CalendarDays,
     role: 'patient',
   },
   {
-    title: "Appointments",
+    title: "Citas",
     href: "/appointments",
     icon: CalendarDays,
-    label: "Manage",
+    label: "Gestionar",
     role: 'staff',
   },
   {
-    title: "Book Appointment",
-    href: "/appointments/book", // Patient view for booking
+    title: "Agendar Cita",
+    href: "/appointments/book", 
     icon: CalendarPlus,
     role: 'patient',
   },
   {
-    title: "New Appointment",
-    href: "/appointments/new", // Staff view for registering
+    title: "Nueva Cita",
+    href: "/appointments/new", 
     icon: CalendarPlus,
     role: 'staff',
   },
   {
-    title: "Availability Calendar",
+    title: "Calendario Disponibilidad",
     href: "/appointments/calendar",
-    icon: CalendarDays, // Could be a specific availability icon too
+    icon: CalendarDays, 
     role: 'staff',
   },
   {
-    title: "AI Reminders",
+    title: "Recordatorios IA",
     href: "/reminders",
     icon: BellRing,
     role: 'staff',
   },
   {
-    title: "Appointment History",
+    title: "Historial de Citas",
     href: "/history",
     icon: History,
     role: 'patient',
   },
   {
-    title: "Patient History", // For staff
-    href: "/patients/history", // Example path
+    title: "Historial Paciente", 
+    href: "/patients/history", 
     icon: Users,
     role: 'staff',
   },
   {
-    title: "Manage Availability",
+    title: "Gestionar Disponibilidad",
     href: "/availability",
     icon: Clock,
     role: 'staff',
   },
   {
-    title: "Settings",
+    title: "Configuración",
     href: "/settings",
     icon: Settings,
   },
-  // Admin specific links (conceptual, UI might not be fully built)
   {
-    title: "User Management",
+    title: "Gestión Usuarios",
     href: "/admin/users",
     icon: Users,
     role: 'admin',
+    disabled: true,
   },
   {
-    title: "Specialties",
+    title: "Especialidades",
     href: "/admin/specialties",
     icon: BriefcaseMedical,
     role: 'admin',
+    disabled: true,
   },
 ];

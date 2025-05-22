@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { CalendarIcon, CalendarPlus, UserPlus, Stethoscope as StethoscopeIcon, MapPin } from "lucide-react";
 import { format } from "date-fns";
+import { es } from 'date-fns/locale'; // Import Spanish locale
 import { cn } from "@/lib/utils";
 
 export default function AppointmentForm() {
@@ -37,16 +38,13 @@ export default function AppointmentForm() {
   });
 
   const onSubmit = async (data: NewAppointmentFormValues) => {
-    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
-    console.log("New Appointment Data:", data);
+    console.log("Nueva Cita Data:", data);
     
     toast({
-      title: "Appointment Registered",
-      description: `Appointment for ${data.patientName} on ${format(data.appointmentDate, "PPP")} at ${data.appointmentTime} has been successfully scheduled.`,
+      title: "Cita Registrada",
+      description: `La cita para ${data.patientName} el ${format(data.appointmentDate, "PPP", { locale: es })} a las ${data.appointmentTime} ha sido programada exitosamente.`,
     });
-    // Optionally redirect or clear form
-    // router.push("/appointments");
     form.reset(); 
   };
 
@@ -55,10 +53,10 @@ export default function AppointmentForm() {
       <CardHeader>
         <div className="flex items-center gap-2 mb-2">
           <CalendarPlus className="h-6 w-6 text-primary" />
-          <CardTitle className="text-2xl">Register New Appointment</CardTitle>
+          <CardTitle className="text-2xl">Registrar Nueva Cita</CardTitle>
         </div>
         <CardDescription>
-          Fill in the details below to schedule a new medical appointment for a patient.
+          Complete los detalles a continuación para programar una nueva cita médica para un paciente.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -69,9 +67,9 @@ export default function AppointmentForm() {
               name="patientName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="flex items-center gap-1"><UserPlus className="h-4 w-4"/>Patient Name</FormLabel>
+                  <FormLabel className="flex items-center gap-1"><UserPlus className="h-4 w-4"/>Nombre del Paciente</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Jane Smith" {...field} />
+                    <Input placeholder="Ej: Ana García" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -84,11 +82,11 @@ export default function AppointmentForm() {
                 name="doctorId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="flex items-center gap-1"><StethoscopeIcon className="h-4 w-4"/>Assign Doctor</FormLabel>
+                    <FormLabel className="flex items-center gap-1"><StethoscopeIcon className="h-4 w-4"/>Asignar Doctor(a)</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select a doctor" />
+                          <SelectValue placeholder="Seleccione un(a) doctor(a)" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -106,11 +104,11 @@ export default function AppointmentForm() {
                 name="specialty"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Medical Specialty</FormLabel>
+                    <FormLabel>Especialidad Médica</FormLabel>
                      <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select a specialty" />
+                          <SelectValue placeholder="Seleccione una especialidad" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -131,7 +129,7 @@ export default function AppointmentForm() {
                 name="appointmentDate"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel className="flex items-center gap-1"><CalendarIcon className="h-4 w-4"/>Appointment Date</FormLabel>
+                    <FormLabel className="flex items-center gap-1"><CalendarIcon className="h-4 w-4"/>Fecha de la Cita</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
@@ -143,7 +141,7 @@ export default function AppointmentForm() {
                             )}
                           >
                             <CalendarIcon className="mr-2 h-4 w-4" />
-                            {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                            {field.value ? format(field.value, "PPP", { locale: es }) : <span>Elija una fecha</span>}
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
@@ -154,6 +152,7 @@ export default function AppointmentForm() {
                           onSelect={field.onChange}
                           disabled={(date) => date < new Date(new Date().setHours(0,0,0,0))}
                           initialFocus
+                          locale={es} // Add Spanish locale to Calendar
                         />
                       </PopoverContent>
                     </Popover>
@@ -166,7 +165,7 @@ export default function AppointmentForm() {
                 name="appointmentTime"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Appointment Time (HH:MM)</FormLabel>
+                    <FormLabel>Hora de la Cita (HH:MM)</FormLabel>
                     <FormControl>
                       <Input type="time" {...field} />
                     </FormControl>
@@ -181,11 +180,11 @@ export default function AppointmentForm() {
               name="location"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="flex items-center gap-1"><MapPin className="h-4 w-4"/>Location</FormLabel>
+                  <FormLabel className="flex items-center gap-1"><MapPin className="h-4 w-4"/>Ubicación</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select a location" />
+                          <SelectValue placeholder="Seleccione una ubicación" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -204,9 +203,9 @@ export default function AppointmentForm() {
               name="notes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Additional Notes (Optional)</FormLabel>
+                  <FormLabel>Notas Adicionales (Opcional)</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="e.g., Patient prefers morning appointments, follow-up visit." {...field} />
+                    <Textarea placeholder="Ej: Paciente prefiere citas matutinas, visita de seguimiento." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -226,16 +225,15 @@ export default function AppointmentForm() {
                   </FormControl>
                   <div className="space-y-1 leading-none">
                     <FormLabel>
-                      This is a video call / telehealth appointment
+                      Es una videollamada / cita de telemedicina
                     </FormLabel>
                   </div>
                 </FormItem>
               )}
             />
 
-
             <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-              {form.formState.isSubmitting ? "Registering..." : "Register Appointment"}
+              {form.formState.isSubmitting ? "Registrando..." : "Registrar Cita"}
             </Button>
           </form>
         </Form>

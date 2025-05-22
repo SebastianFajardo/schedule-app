@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from 'react';
@@ -9,29 +10,33 @@ import {
   SidebarHeader,
   SidebarContent,
   SidebarFooter,
+  useSidebar, // Import useSidebar
 } from "@/components/ui/sidebar";
 import AppSidebarContent from '@/components/layout/AppSidebarContent';
-import { Stethoscope, UserCircle } from 'lucide-react'; // UserCircle for footer
+import { Stethoscope, UserCircle, LogOut } from 'lucide-react'; 
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile'; // This hook can be used if needed elsewhere, but SidebarProvider has its own isMobile.
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const isMobile = useIsMobile();
+  // useIsMobile hook from use-mobile.tsx might differ from useSidebar's context if breakpoint is different.
+  // It's often better to rely on the Sidebar's context for consistency within its components.
+  const isMobileHook = useIsMobile(); // Can be used for logic outside sidebar context if needed.
 
-  // Mock user data for sidebar footer example
   const mockUser = {
-    name: "Dr. Emily Carter",
-    role: "Staff",
+    name: "Dra. Ana Pérez", // Translated
+    role: "Personal", // Translated
   };
 
   return (
-    <SidebarProvider defaultOpen={!isMobile} open={!isMobile}>
+    // defaultOpen for desktop, open for controlled state (desktop). Mobile Sheet is handled internally by Sidebar component + AppHeader's trigger
+    <SidebarProvider defaultOpen={!isMobileHook} open={!isMobileHook}>
       <AppHeader />
       <div className="flex min-h-[calc(100vh-4rem)]"> {/* Adjust for header height */}
+        {/* The Sidebar component itself handles becoming a Sheet on mobile via context */}
         <Sidebar
-          variant="sidebar" // "sidebar", "floating", "inset"
-          collapsible={isMobile ? "offcanvas" : "icon"} // "offcanvas", "icon", "none"
+          variant="sidebar" 
+          collapsible={isMobileHook ? "offcanvas" : "icon"} // "offcanvas" makes it a sheet on mobile, "icon" for desktop
           className="border-r border-sidebar-border shadow-md"
         >
           <SidebarHeader className="border-b border-sidebar-border h-16 flex items-center">
@@ -54,9 +59,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               </div>
             </div>
             <Button variant="ghost" size="sm" className="w-full justify-start mt-1 group-data-[collapsible=icon]:justify-center text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
-               {/* LogOut Icon */}
-               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
-              <span className="ml-2 group-data-[collapsible=icon]:hidden">Logout</span>
+               <LogOut className="h-4 w-4" /> {/* Replaced SVG with Lucide icon */}
+              <span className="ml-2 group-data-[collapsible=icon]:hidden">Cerrar Sesión</span>
             </Button>
           </SidebarFooter>
         </Sidebar>

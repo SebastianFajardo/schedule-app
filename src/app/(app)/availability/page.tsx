@@ -3,15 +3,14 @@ import { Button } from "@/components/ui/button";
 import { CalendarCog, Clock, PlusCircle } from "lucide-react";
 import Image from "next/image";
 
-// Mock availability data
 const currentAvailability = [
-  { day: "Monday", Btime: "09:00 AM", Etime: "05:00 PM", active: true },
-  { day: "Tuesday", Btime: "09:00 AM", Etime: "05:00 PM", active: true },
-  { day: "Wednesday", Btime: "09:00 AM", Etime: "01:00 PM", active: true },
-  { day: "Thursday", Btime: "09:00 AM", Etime: "05:00 PM", active: true },
-  { day: "Friday", Btime: "10:00 AM", Etime: "03:00 PM", active: true },
-  { day: "Saturday", Btime: "Not Available", Etime: "", active: false },
-  { day: "Sunday", Btime: "Not Available", Etime: "", active: false },
+  { day: "Lunes", Btime: "09:00 AM", Etime: "05:00 PM", active: true },
+  { day: "Martes", Btime: "09:00 AM", Etime: "05:00 PM", active: true },
+  { day: "Miércoles", Btime: "09:00 AM", Etime: "01:00 PM", active: true },
+  { day: "Jueves", Btime: "09:00 AM", Etime: "05:00 PM", active: true },
+  { day: "Viernes", Btime: "10:00 AM", Etime: "03:00 PM", active: true },
+  { day: "Sábado", Btime: "No Disponible", Etime: "", active: false },
+  { day: "Domingo", Btime: "No Disponible", Etime: "", active: false },
 ];
 
 export default function AvailabilityPage() {
@@ -19,10 +18,10 @@ export default function AvailabilityPage() {
     <div className="container mx-auto py-8 px-4 md:px-6">
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
-          <CalendarCog className="h-8 w-8 text-primary" /> Manage Care Hours
+          <CalendarCog className="h-8 w-8 text-primary" /> Gestionar Horas de Atención
         </h1>
         <p className="text-muted-foreground mt-1">
-          Define your working hours and availability for patient appointments.
+          Define tus horas de trabajo y disponibilidad para citas de pacientes.
         </p>
       </div>
 
@@ -30,11 +29,11 @@ export default function AvailabilityPage() {
         <Card className="lg:col-span-2 shadow-lg">
           <CardHeader className="flex flex-row justify-between items-center">
             <div>
-              <CardTitle>Current Weekly Schedule</CardTitle>
-              <CardDescription>Review and update your standard availability.</CardDescription>
+              <CardTitle>Horario Semanal Actual</CardTitle>
+              <CardDescription>Revisa y actualiza tu disponibilidad estándar.</CardDescription>
             </div>
             <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90">
-              <PlusCircle className="mr-2 h-4 w-4" /> Edit Schedule
+              <PlusCircle className="mr-2 h-4 w-4" /> Editar Horario
             </Button>
           </CardHeader>
           <CardContent>
@@ -61,37 +60,37 @@ export default function AvailabilityPage() {
         <div className="space-y-6">
           <Card className="shadow-lg">
             <CardHeader>
-              <CardTitle>Block Specific Dates</CardTitle>
-              <CardDescription>Set unavailability for holidays or personal time.</CardDescription>
+              <CardTitle>Bloquear Fechas Específicas</CardTitle>
+              <CardDescription>Establece indisponibilidad por festivos o tiempo personal.</CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground mb-3">
-                This feature allows you to mark specific dates or date ranges as unavailable, overriding your regular schedule.
+                Esta función te permite marcar fechas o rangos de fechas específicos como no disponibles, anulando tu horario regular.
               </p>
               <Button className="w-full" variant="outline">
-                <PlusCircle className="mr-2 h-4 w-4" /> Add Time Off / Block Date
+                <PlusCircle className="mr-2 h-4 w-4" /> Añadir Tiempo Libre / Bloquear Fecha
               </Button>
             </CardContent>
           </Card>
            <Card className="shadow-lg">
              <CardHeader>
-                <CardTitle>Location Specific Hours</CardTitle>
-                <CardDescription>Define availability per clinic or telehealth.</CardDescription>
+                <CardTitle>Horarios por Ubicación</CardTitle>
+                <CardDescription>Define disponibilidad por clínica o telemedicina.</CardDescription>
              </CardHeader>
              <CardContent>
                  <p className="text-sm text-muted-foreground mb-3">
-                    Configure different working hours based on your service locations.
+                    Configura diferentes horarios de trabajo según tus ubicaciones de servicio.
                  </p>
                  <Button className="w-full" variant="outline" disabled>
-                    Manage Location Hours (Coming Soon)
+                    Gestionar Horarios (Próximamente)
                  </Button>
                  <Image 
                     src="https://placehold.co/600x300.png" 
-                    alt="Location map placeholder" 
+                    alt="Placeholder de mapa de ubicación" 
                     width={600} 
                     height={300} 
                     className="rounded-md mt-4 aspect-[2/1] object-cover"
-                    data-ai-hint="map location"
+                    data-ai-hint="mapa ubicacion"
                   />
              </CardContent>
            </Card>
