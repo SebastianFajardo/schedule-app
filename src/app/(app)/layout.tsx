@@ -10,27 +10,66 @@ import {
   SidebarHeader,
   SidebarContent,
   SidebarFooter,
+  useSidebar, // Import useSidebar
 } from "@/components/ui/sidebar";
 import AppSidebarContent from '@/components/layout/AppSidebarContent';
 import AppFooter from '@/components/layout/AppFooter';
-import { Stethoscope, UserCircle, LogOut } from 'lucide-react';
+import { Stethoscope, UserCircle, LogOut, Menu, PanelLeftClose } from 'lucide-react'; // Import Menu and PanelLeftClose
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from "@/lib/utils";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const isMobileHook = useIsMobile();
+  // Get sidebar state and toggle function for the desktop pin button
+  // Note: We call useSidebar() inside a component that is a child of SidebarProvider.
+  // To use it here, we'll wrap the part of the layout that needs it in a small sub-component.
 
   const mockUser = {
     name: "Usuario Ejemplo",
-    email: "usuario@ejemplo.com", // Added email for consistency with header
-    role: "Personal", // Role for footer
+    email: "usuario@ejemplo.com",
+    role: "Personal",
   };
 
-  // Sidebar should be collapsed by default on desktop
-  // For mobile, SidebarProvider's internal logic for Sheet handles it.
-  // User's preference (pinned state) will be loaded from cookie by SidebarProvider.
-  const defaultOpenDesktop = false; 
+  const defaultOpenDesktop = false;
+
+  // Sub-component to access useSidebar context for the pin button
+  const DesktopSidebarHeaderContent = () => {
+    const { toggleSidebar, state: sidebarPinnedState } = useSidebar();
+    return (
+      <SidebarHeader className={cn(
+        "border-b border-sidebar-border h-16 flex items-center px-2",
+        "justify-between"
+      )}>
+        <Link href="/dashboard" className="flex items-center gap-2">
+          <Stethoscope className="h-7 w-7 text-sidebar-primary" />
+          <span className={cn(
+            "text-xl font-semibold text-sidebar-foreground",
+            "group-data-[state=expanded]:inline",
+            "group-data-[state=collapsed]:group-hover:inline",
+            "group-data-[state=collapsed]:not(group-hover):hidden"
+          )}>
+            MediSchedule
+          </span>
+        </Link>
+        
+        {!isMobileHook && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleSidebar}
+            className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+            title={sidebarPinnedState === 'expanded' ? "Colapsar menú" : "Expandir menú"}
+          >
+            {sidebarPinnedState === 'expanded' ? <PanelLeftClose className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            <span className="sr-only">{sidebarPinnedState === 'expanded' ? "Colapsar menú" : "Expandir menú"}</span>
+          </Button>
+        )}
+      </SidebarHeader>
+    );
+  };
+
 
   return (
     <SidebarProvider defaultOpen={isMobileHook ? false : defaultOpenDesktop}>
@@ -42,14 +81,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             collapsible={isMobileHook ? "offcanvas" : "icon"}
             className="border-r border-sidebar-border shadow-md"
           >
-            <SidebarHeader className="border-b border-sidebar-border h-16 flex items-center">
-               <Link href="/dashboard" className="flex items-center gap-2 w-full px-2">
-                  <Stethoscope className="h-7 w-7 text-sidebar-primary" />
-                  <span className="text-xl font-semibold text-sidebar-foreground group-data-[state=collapsed]:group-hover:inline group-data-[state=collapsed]:hidden">
-                    MediSchedule
-                  </span>
-                </Link>
-            </SidebarHeader>
+            <DesktopSidebarHeaderContent /> {/* Use the sub-component here */}
             <SidebarContent>
               <AppSidebarContent />
             </SidebarContent>
@@ -61,7 +93,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   <p className="text-xs text-sidebar-foreground/80">{mockUser.role}</p>
                 </div>
               </div>
-               {/* Icon-only version for footer user info when collapsed and not hovered */}
               <div className="hidden items-center gap-2 p-2 rounded-md bg-sidebar-accent/30 group-data-[collapsible=icon]:group-data-[state=collapsed]:not(group-hover):flex group-data-[collapsible=icon]:group-data-[state=collapsed]:not(group-hover):justify-center">
                 <UserCircle className="h-8 w-8 text-sidebar-foreground" />
               </div>

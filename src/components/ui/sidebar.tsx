@@ -29,7 +29,7 @@ const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
 const SIDEBAR_WIDTH = "16rem"
 const SIDEBAR_WIDTH_MOBILE = "18rem"
-const SIDEBAR_WIDTH_ICON = "3.5rem" // Adjusted for better icon display
+const SIDEBAR_WIDTH_ICON = "3.5rem"
 const SIDEBAR_KEYBOARD_SHORTCUT = "b"
 
 type SidebarContext = {
@@ -87,10 +87,8 @@ const SidebarProvider = React.forwardRef<
       return defaultOpen;
     });
     
-    // Effect to sync _open with defaultOpen if openProp is not provided and defaultOpen changes
-    // This is particularly for the initial desktop scenario where defaultOpen might be false.
     React.useEffect(() => {
-      if (openProp === undefined) { // Only apply if not controlled
+      if (openProp === undefined) { 
         _setOpen(defaultOpen);
       }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -110,7 +108,7 @@ const SidebarProvider = React.forwardRef<
           document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
         }
       },
-      [setOpenProp, open, _setOpen] // Added _setOpen
+      [setOpenProp, open, _setOpen]
     )
 
     const toggleSidebar = React.useCallback(() => {
@@ -239,7 +237,6 @@ const Sidebar = React.forwardRef<
         className={cn(
           "group peer hidden md:flex flex-col text-sidebar-foreground bg-sidebar", 
            "transition-all duration-300 ease-in-out",
-          // New width logic for hover effect on collapsed state
           'w-[--sidebar-width-icon]',
           'data-[state=expanded]:w-[--sidebar-width]',
           'data-[state=collapsed]:hover:w-[--sidebar-width]',
@@ -265,8 +262,6 @@ const SidebarTrigger = React.forwardRef<
 >(({ className, onClick: propOnClick, children, asChild = false, ...props }, ref) => {
   const { toggleSidebar, isMobile } = useSidebar();
 
-  // For desktop, this trigger is not used for the main sidebar functionality.
-  // It is specifically for mobile off-canvas toggle.
   if (!isMobile) return null;
 
   const Comp = asChild ? Slot : Button;
@@ -281,7 +276,7 @@ const SidebarTrigger = React.forwardRef<
       size="icon"
       className={cn("shrink-0", className)}
       {...props}
-      onClick={(event: React.MouseEvent<HTMLButtonElement>) => { // Ensure event type
+      onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
         propOnClick?.(event);
         toggleSidebar();
       }}
@@ -297,36 +292,6 @@ const SidebarTrigger = React.forwardRef<
 });
 SidebarTrigger.displayName = "SidebarTrigger";
 
-
-const SidebarRail = React.forwardRef<
-  HTMLButtonElement,
-  React.ComponentProps<"button">
->(({ className, ...props }, ref) => {
-  const { toggleSidebar, isMobile, state } = useSidebar()
-
-  if (isMobile) return null; 
-
-  return (
-    <button
-      ref={ref}
-      data-sidebar="rail"
-      aria-label="Alternar menú lateral"
-      tabIndex={-1}
-      onClick={toggleSidebar}
-      title="Alternar menú lateral"
-      className={cn(
-        "absolute inset-y-0 z-20 hidden w-4 -translate-x-1/2 cursor-pointer items-center justify-center transition-all ease-linear group-data-[side=left]:-right-2 group-data-[side=right]:-left-2 md:flex",
-        "hover:bg-sidebar-accent/20 rounded-full",
-        state === "expanded" ? "group-data-[side=left]:right-0" : "group-data-[side=left]:right-0",
-         className
-      )}
-      {...props}
-    >
-      <div className="h-6 w-1 bg-sidebar-border group-hover:bg-sidebar-primary rounded-full"></div>
-    </button>
-  )
-})
-SidebarRail.displayName = "SidebarRail"
 
 const SidebarInset = React.forwardRef<
   HTMLElement, 
@@ -356,8 +321,8 @@ const SidebarInput = React.forwardRef<
       data-sidebar="input"
       className={cn(
         "h-8 w-full bg-background text-sm shadow-none focus-visible:ring-2 focus-visible:ring-sidebar-ring",
-        "group-data-[state=collapsed]:not(group-hover):hidden", // Hide if collapsed AND not hovered
-        "group-data-[state=collapsed]:group-hover:flex", // Show if collapsed AND hovered
+        "group-data-[state=collapsed]:not(group-hover):hidden", 
+        "group-data-[state=collapsed]:group-hover:flex", 
         className
       )}
       {...props}
@@ -406,7 +371,7 @@ const SidebarSeparator = React.forwardRef<
       data-sidebar="separator"
       className={cn("mx-2 w-auto bg-sidebar-border",
       "group-data-[state=collapsed]:not(group-hover):mx-auto group-data-[state=collapsed]:not(group-hover):my-1 group-data-[state=collapsed]:not(group-hover):h-auto group-data-[state=collapsed]:not(group-hover):w-3/4",
-      "group-data-[state=collapsed]:group-hover:mx-2 group-data-[state=collapsed]:group-hover:w-auto", // Show normally when hovered
+      "group-data-[state=collapsed]:group-hover:mx-2 group-data-[state=collapsed]:group-hover:w-auto", 
       className)}
       {...props}
     />
@@ -442,7 +407,7 @@ const SidebarGroup = React.forwardRef<
       data-sidebar="group"
       className={cn("relative flex w-full min-w-0 flex-col p-2",
       "group-data-[state=collapsed]:not(group-hover):p-0 group-data-[state=collapsed]:not(group-hover):items-center",
-      "group-data-[state=collapsed]:group-hover:p-2", // Restore padding when hovered
+      "group-data-[state=collapsed]:group-hover:p-2", 
       className)}
       {...props}
     />
@@ -504,7 +469,7 @@ const SidebarGroupContent = React.forwardRef<
     data-sidebar="group-content"
     className={cn("w-full text-sm",
     "group-data-[state=collapsed]:not(group-hover):flex group-data-[state=collapsed]:not(group-hover):flex-col group-data-[state=collapsed]:not(group-hover):items-center",
-    "group-data-[state=collapsed]:group-hover:block", // Normal block display when hovered
+    "group-data-[state=collapsed]:group-hover:block", 
     className)}
     {...props}
   />
@@ -520,7 +485,7 @@ const SidebarMenu = React.forwardRef<
     data-sidebar="menu"
     className={cn("flex w-full min-w-0 flex-col gap-1",
     "group-data-[state=collapsed]:not(group-hover):items-center",
-    "group-data-[state=collapsed]:group-hover:items-start", // Align items to start when hovered
+    "group-data-[state=collapsed]:group-hover:items-start", 
     className)}
     {...props}
   />
@@ -542,9 +507,7 @@ SidebarMenuItem.displayName = "SidebarMenuItem"
 
 const sidebarMenuButtonVariants = cva(
   "peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-none ring-sidebar-ring transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-sidebar-primary data-[active=true]:font-semibold data-[active=true]:text-sidebar-primary-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground",
-  // Collapsed (icon-only) state, NOT hovered by parent sidebar
   "group-data-[state=collapsed]:not(group-hover):justify-center group-data-[state=collapsed]:not(group-hover):p-2 group-data-[state=collapsed]:not(group-hover):w-auto group-data-[state=collapsed]:not(group-hover):aspect-square",
-  // Collapsed state AND hovered by parent sidebar (should look like expanded)
   "group-data-[state=collapsed]:group-hover:justify-start group-data-[state=collapsed]:group-hover:p-2 group-data-[state=collapsed]:group-hover:w-full group-data-[state=collapsed]:group-hover:aspect-auto",
   {
     variants: {
@@ -596,20 +559,18 @@ const SidebarMenuButton = React.forwardRef<
         return child; 
       }
       if (typeof child === 'string') {
-        // Text part: hidden if sidebar is collapsed AND NOT hovered by parent. Visible otherwise.
-        // SR part: visible if sidebar is collapsed AND NOT hovered by parent. Hidden otherwise.
         return (
           <>
             <span className={cn(
-              "hidden", // Default hidden
-              "group-data-[state=expanded]:inline", // Visible if sidebar pinned open
-              "group-data-[state=collapsed]:group-hover:inline" // Visible if sidebar pinned collapsed AND parent is hovered
+              "hidden", 
+              "group-data-[state=expanded]:inline", 
+              "group-data-[state=collapsed]:group-hover:inline" 
             )}>{child}</span>
             <span className={cn(
-              "sr-only", // Default sr-only
-              "group-data-[state=collapsed]:not(group-hover):not-sr-only group-data-[state=collapsed]:not(group-hover):inline", // Visible (not sr-only) if sidebar pinned collapsed AND parent NOT hovered
-              "group-data-[state=expanded]:sr-only", // sr-only if pinned open
-              "group-data-[state=collapsed]:group-hover:sr-only" // sr-only if pinned collapsed AND parent hovered
+              "sr-only", 
+              "group-data-[state=collapsed]:not(group-hover):not-sr-only group-data-[state=collapsed]:not(group-hover):inline", 
+              "group-data-[state=expanded]:sr-only", 
+              "group-data-[state=collapsed]:group-hover:sr-only" 
             )}>{child}</span>
           </>
         );
@@ -631,9 +592,7 @@ const SidebarMenuButton = React.forwardRef<
       </Comp>
     )
     
-    // Tooltip should only show when the sidebar is pinned collapsed AND not currently hovered (i.e., truly in icon-only mode)
-    // or if explicitly provided as a string/object for mobile (though mobile doesn't usually show tooltips like this)
-    const showTooltip = sidebarPinnedState === "collapsed" && !isMobile; // Simplified: show if pinned collapsed on desktop
+    const showTooltip = sidebarPinnedState === "collapsed" && !isMobile; 
 
     if (!tooltip || !showTooltip) {
       return button;
@@ -644,10 +603,9 @@ const SidebarMenuButton = React.forwardRef<
         tooltipContentNode = tooltip;
     } else if (React.isValidElement(tooltip) && tooltip.props.children) {
         tooltipContentNode = tooltip.props.children;
-    } else if (typeof children === 'string') { // Fallback to button text for tooltip
+    } else if (typeof children === 'string') { 
         tooltipContentNode = children;
     } else {
-        // Attempt to find a string child for tooltip if not explicitly provided
         React.Children.forEach(children, child => {
             if (typeof child === 'string' && !tooltipContentNode) {
                 tooltipContentNode = child;
@@ -665,8 +623,6 @@ const SidebarMenuButton = React.forwardRef<
           align="center"
           alignOffset={4} 
           sideOffset={6} 
-          // Tooltip should be hidden if the parent group (sidebar) is hovered when collapsed, or if expanded
-          // This means it's only visible when sidebar is collapsed AND not hovered.
           className={cn(
            "group-data-[state=expanded]:hidden",
            "group-data-[state=collapsed]:group-hover:hidden"
@@ -699,8 +655,8 @@ const SidebarMenuAction = React.forwardRef<
         "peer-data-[size=sm]/menu-button:top-1/2",
         "peer-data-[size=default]/menu-button:top-1/2",
         "peer-data-[size=lg]/menu-button:top-1/2",
-        "group-data-[state=collapsed]:not(group-hover):hidden", // Hide if collapsed AND not hovered
-        "group-data-[state=collapsed]:group-hover:flex", // Show if collapsed AND hovered
+        "group-data-[state=collapsed]:not(group-hover):hidden", 
+        "group-data-[state=collapsed]:group-hover:flex", 
         showOnHover &&
           "group-focus-within/menu-item:opacity-100 group-hover/menu-item:opacity-100 data-[state=open]:opacity-100 peer-data-[active=true]/menu-button:text-sidebar-accent-foreground md:opacity-0",
         className
@@ -723,8 +679,8 @@ const SidebarMenuBadge = React.forwardRef<
     className={cn(
       "absolute right-1 top-1/2 -translate-y-1/2 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-xs font-medium tabular-nums text-sidebar-foreground select-none pointer-events-none",
       "peer-hover/menu-button:text-sidebar-accent-foreground peer-data-[active=true]/menu-button:text-sidebar-accent-foreground",
-       "group-data-[state=collapsed]:not(group-hover):hidden", // Hide if collapsed AND not hovered
-       "group-data-[state=collapsed]:group-hover:flex", // Show if collapsed AND hovered
+       "group-data-[state=collapsed]:not(group-hover):hidden", 
+       "group-data-[state=collapsed]:group-hover:flex", 
       className
     )}
     {...props}
@@ -748,7 +704,7 @@ const SidebarMenuSkeleton = React.forwardRef<
       data-sidebar="menu-skeleton"
       className={cn("rounded-md h-8 flex gap-2 px-2 items-center",
       "group-data-[state=collapsed]:not(group-hover):w-8 group-data-[state=collapsed]:not(group-hover):justify-center group-data-[state=collapsed]:not(group-hover):px-0",
-      "group-data-[state=collapsed]:group-hover:w-full group-data-[state=collapsed]:group-hover:justify-start group-data-[state=collapsed]:group-hover:px-2", // Full width when hovered
+      "group-data-[state=collapsed]:group-hover:w-full group-data-[state=collapsed]:group-hover:justify-start group-data-[state=collapsed]:group-hover:px-2", 
       className)}
       {...props}
     >
@@ -760,8 +716,8 @@ const SidebarMenuSkeleton = React.forwardRef<
       )}
       <Skeleton
         className={cn("h-4 flex-1 max-w-[--skeleton-width]",
-        "group-data-[state=collapsed]:not(group-hover):hidden", // Hide text if collapsed AND not hovered
-        "group-data-[state=collapsed]:group-hover:inline-block" // Show text if collapsed AND hovered
+        "group-data-[state=collapsed]:not(group-hover):hidden", 
+        "group-data-[state=collapsed]:group-hover:inline-block" 
        )}
         data-sidebar="menu-skeleton-text"
         style={
@@ -820,8 +776,8 @@ const SidebarMenuSubButton = React.forwardRef<
         "data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground",
         size === "sm" && "text-xs",
         size === "md" && "text-sm",
-        "group-data-[state=collapsed]:not(group-hover):hidden", // Hide if collapsed AND not hovered
-        "group-data-[state=collapsed]:group-hover:flex", // Show if collapsed AND hovered
+        "group-data-[state=collapsed]:not(group-hover):hidden", 
+        "group-data-[state=collapsed]:group-hover:flex", 
         className
       )}
       {...props}
@@ -853,8 +809,9 @@ export {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
   SidebarProvider,
-  SidebarRail,
+  // SidebarRail, // Removed SidebarRail
   SidebarSeparator,
   SidebarTrigger,
   useSidebar,
 }
+
