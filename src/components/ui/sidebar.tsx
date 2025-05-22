@@ -86,6 +86,16 @@ const SidebarProvider = React.forwardRef<
       }
       return defaultOpen;
     });
+    
+    // Effect to sync _open with defaultOpen if openProp is not provided and defaultOpen changes
+    // This is particularly for the initial desktop scenario where defaultOpen might be false.
+    React.useEffect(() => {
+      if (openProp === undefined) { // Only apply if not controlled
+        _setOpen(defaultOpen);
+      }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [defaultOpen, openProp]);
+
 
     const open = openProp ?? _open
     const setOpen = React.useCallback(
@@ -100,7 +110,7 @@ const SidebarProvider = React.forwardRef<
           document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
         }
       },
-      [setOpenProp, open]
+      [setOpenProp, open, _setOpen] // Added _setOpen
     )
 
     const toggleSidebar = React.useCallback(() => {
@@ -151,7 +161,7 @@ const SidebarProvider = React.forwardRef<
               } as React.CSSProperties
             }
             className={cn(
-              "group/sidebar-wrapper flex flex-col min-h-screen", // Ensures full height
+              "group/sidebar-wrapper flex flex-col min-h-screen", 
               className
             )}
             ref={ref}
@@ -189,7 +199,7 @@ const Sidebar = React.forwardRef<
 
     if (collapsible === "none") {
       return (
-        <aside // Changed to aside for semantics
+        <aside 
           className={cn(
             "flex h-full w-[--sidebar-width] flex-col bg-sidebar text-sidebar-foreground",
             className
@@ -216,7 +226,7 @@ const Sidebar = React.forwardRef<
             }
             side={side}
           >
-            <SheetTitle className="sr-only">Menú Principal</SheetTitle> {/* Accessibility */}
+            <SheetTitle className="sr-only">Menú Principal</SheetTitle> 
             {children}
           </SheetContent>
         </Sheet>
@@ -224,17 +234,20 @@ const Sidebar = React.forwardRef<
     }
 
     return (
-      <aside // Changed to aside for semantics
+      <aside 
         ref={ref}
         className={cn(
-          "group peer hidden md:flex flex-col text-sidebar-foreground bg-sidebar", // Added flex-col and bg-sidebar
+          "group peer hidden md:flex flex-col text-sidebar-foreground bg-sidebar", 
            "transition-all duration-300 ease-in-out",
-          state === 'expanded' ? 'w-[--sidebar-width]' : 'w-[--sidebar-width-icon]',
+          // New width logic for hover effect on collapsed state
+          'w-[--sidebar-width-icon]',
+          'data-[state=expanded]:w-[--sidebar-width]',
+          'data-[state=collapsed]:hover:w-[--sidebar-width]',
           variant === 'floating' || variant === 'inset' ? 'm-2 rounded-lg shadow-lg' : 'border-r border-sidebar-border',
           className
         )}
         data-state={state}
-        data-collapsible={collapsible} // Keep for data attribute styling if needed
+        data-collapsible={collapsible} 
         data-variant={variant}
         data-side={side}
         {...props}
@@ -252,32 +265,34 @@ const SidebarTrigger = React.forwardRef<
 >(({ className, onClick: propOnClick, children, asChild = false, ...props }, ref) => {
   const { toggleSidebar, isMobile } = useSidebar();
 
-  if (!isMobile) return null; // Only render on mobile
+  // For desktop, this trigger is not used for the main sidebar functionality.
+  // It is specifically for mobile off-canvas toggle.
+  if (!isMobile) return null;
 
+  const Comp = asChild ? Slot : Button;
   const defaultIcon = <Menu className="h-5 w-5" />;
   const defaultSrText = "Alternar menú de navegación";
 
   return (
-    <Button
+    <Comp
       ref={ref}
       data-sidebar="trigger"
       variant="ghost"
       size="icon"
       className={cn("shrink-0", className)}
       {...props}
-      asChild={asChild}
-      onClick={(event) => {
+      onClick={(event: React.MouseEvent<HTMLButtonElement>) => { // Ensure event type
         propOnClick?.(event);
         toggleSidebar();
       }}
     >
-      {asChild ? children : (
+      {asChild && children ? children : (
         <>
           {defaultIcon}
           <span className="sr-only">{defaultSrText}</span>
         </>
       )}
-    </Button>
+    </Comp>
   );
 });
 SidebarTrigger.displayName = "SidebarTrigger";
@@ -289,7 +304,7 @@ const SidebarRail = React.forwardRef<
 >(({ className, ...props }, ref) => {
   const { toggleSidebar, isMobile, state } = useSidebar()
 
-  if (isMobile) return null; // Don't show rail on mobile
+  if (isMobile) return null; 
 
   return (
     <button
@@ -314,15 +329,14 @@ const SidebarRail = React.forwardRef<
 SidebarRail.displayName = "SidebarRail"
 
 const SidebarInset = React.forwardRef<
-  HTMLElement, // Changed from div to main for semantic HTML
+  HTMLElement, 
   React.ComponentProps<"main">
 >(({ className, ...props }, ref) => {
   return (
-    <main // Changed from div to main
+    <main 
       ref={ref}
       className={cn(
-        "relative flex-1 flex flex-col bg-background overflow-y-auto", // Added flex flex-col
-        // Apply margin adjustments for inset variant if sidebar is present and not mobile
+        "relative flex-1 flex flex-col bg-background overflow-y-auto", 
         "md:peer-data-[variant=inset]:m-2 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow-lg",
         className
       )}
@@ -342,7 +356,8 @@ const SidebarInput = React.forwardRef<
       data-sidebar="input"
       className={cn(
         "h-8 w-full bg-background text-sm shadow-none focus-visible:ring-2 focus-visible:ring-sidebar-ring",
-        "group-data-[state=collapsed]:hidden",
+        "group-data-[state=collapsed]:not(group-hover):hidden", // Hide if collapsed AND not hovered
+        "group-data-[state=collapsed]:group-hover:flex", // Show if collapsed AND hovered
         className
       )}
       {...props}
@@ -359,7 +374,7 @@ const SidebarHeader = React.forwardRef<
     <div
       ref={ref}
       data-sidebar="header"
-      className={cn("flex flex-col gap-2 p-2 shrink-0", className)} // Added shrink-0
+      className={cn("flex flex-col gap-2 p-2 shrink-0", className)} 
       {...props}
     />
   )
@@ -374,7 +389,7 @@ const SidebarFooter = React.forwardRef<
     <div
       ref={ref}
       data-sidebar="footer"
-      className={cn("flex flex-col gap-2 p-2 mt-auto shrink-0", className)} // Added shrink-0 and mt-auto
+      className={cn("flex flex-col gap-2 p-2 mt-auto shrink-0", className)} 
       {...props}
     />
   )
@@ -390,7 +405,8 @@ const SidebarSeparator = React.forwardRef<
       ref={ref}
       data-sidebar="separator"
       className={cn("mx-2 w-auto bg-sidebar-border",
-      "group-data-[state=collapsed]:mx-auto group-data-[state=collapsed]:my-1 group-data-[state=collapsed]:h-auto group-data-[state=collapsed]:w-3/4",
+      "group-data-[state=collapsed]:not(group-hover):mx-auto group-data-[state=collapsed]:not(group-hover):my-1 group-data-[state=collapsed]:not(group-hover):h-auto group-data-[state=collapsed]:not(group-hover):w-3/4",
+      "group-data-[state=collapsed]:group-hover:mx-2 group-data-[state=collapsed]:group-hover:w-auto", // Show normally when hovered
       className)}
       {...props}
     />
@@ -407,8 +423,7 @@ const SidebarContent = React.forwardRef<
       ref={ref}
       data-sidebar="content"
       className={cn(
-        "flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto overflow-x-hidden", // Added overflow-x-hidden
-        // "group-data-[state=collapsed]:overflow-hidden group-data-[state=collapsed]:items-center",
+        "flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto overflow-x-hidden", 
         className
       )}
       {...props}
@@ -426,7 +441,8 @@ const SidebarGroup = React.forwardRef<
       ref={ref}
       data-sidebar="group"
       className={cn("relative flex w-full min-w-0 flex-col p-2",
-      "group-data-[state=collapsed]:p-0 group-data-[state=collapsed]:items-center",
+      "group-data-[state=collapsed]:not(group-hover):p-0 group-data-[state=collapsed]:not(group-hover):items-center",
+      "group-data-[state=collapsed]:group-hover:p-2", // Restore padding when hovered
       className)}
       {...props}
     />
@@ -446,7 +462,8 @@ const SidebarGroupLabel = React.forwardRef<
       data-sidebar="group-label"
       className={cn(
         "duration-200 flex h-8 shrink-0 items-center rounded-md px-2 text-xs font-medium text-sidebar-foreground/70 outline-none ring-sidebar-ring transition-[margin,opacity] ease-linear focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0",
-        "group-data-[state=collapsed]:hidden",
+        "group-data-[state=collapsed]:not(group-hover):hidden",
+        "group-data-[state=collapsed]:group-hover:flex",
         className
       )}
       {...props}
@@ -468,7 +485,8 @@ const SidebarGroupAction = React.forwardRef<
       className={cn(
         "absolute right-3 top-3.5 flex aspect-square w-5 items-center justify-center rounded-md p-0 text-sidebar-foreground outline-none ring-sidebar-ring transition-transform hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0",
         "after:absolute after:-inset-2 after:md:hidden",
-        "group-data-[state=collapsed]:hidden",
+        "group-data-[state=collapsed]:not(group-hover):hidden",
+        "group-data-[state=collapsed]:group-hover:flex",
         className
       )}
       {...props}
@@ -485,7 +503,8 @@ const SidebarGroupContent = React.forwardRef<
     ref={ref}
     data-sidebar="group-content"
     className={cn("w-full text-sm",
-    "group-data-[state=collapsed]:flex group-data-[state=collapsed]:flex-col group-data-[state=collapsed]:items-center",
+    "group-data-[state=collapsed]:not(group-hover):flex group-data-[state=collapsed]:not(group-hover):flex-col group-data-[state=collapsed]:not(group-hover):items-center",
+    "group-data-[state=collapsed]:group-hover:block", // Normal block display when hovered
     className)}
     {...props}
   />
@@ -500,7 +519,8 @@ const SidebarMenu = React.forwardRef<
     ref={ref}
     data-sidebar="menu"
     className={cn("flex w-full min-w-0 flex-col gap-1",
-    "group-data-[state=collapsed]:items-center",
+    "group-data-[state=collapsed]:not(group-hover):items-center",
+    "group-data-[state=collapsed]:group-hover:items-start", // Align items to start when hovered
     className)}
     {...props}
   />
@@ -514,14 +534,18 @@ const SidebarMenuItem = React.forwardRef<
   <li
     ref={ref}
     data-sidebar="menu-item"
-    className={cn("group/menu-item relative w-full", className)} // Added w-full
+    className={cn("group/menu-item relative w-full", className)} 
     {...props}
   />
 ))
 SidebarMenuItem.displayName = "SidebarMenuItem"
 
 const sidebarMenuButtonVariants = cva(
-  "peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-none ring-sidebar-ring transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-sidebar-primary data-[active=true]:font-semibold data-[active=true]:text-sidebar-primary-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[state=collapsed]:justify-center group-data-[state=collapsed]:p-2 group-data-[state=collapsed]:w-auto group-data-[state=collapsed]:aspect-square [&>span:not(.sr-only)]:group-data-[state=collapsed]:hidden [&>span.sr-only]:group-data-[state=expanded]:hidden [&>svg]:size-4 [&>svg]:shrink-0",
+  "peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-none ring-sidebar-ring transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-sidebar-primary data-[active=true]:font-semibold data-[active=true]:text-sidebar-primary-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground",
+  // Collapsed (icon-only) state, NOT hovered by parent sidebar
+  "group-data-[state=collapsed]:not(group-hover):justify-center group-data-[state=collapsed]:not(group-hover):p-2 group-data-[state=collapsed]:not(group-hover):w-auto group-data-[state=collapsed]:not(group-hover):aspect-square",
+  // Collapsed state AND hovered by parent sidebar (should look like expanded)
+  "group-data-[state=collapsed]:group-hover:justify-start group-data-[state=collapsed]:group-hover:p-2 group-data-[state=collapsed]:group-hover:w-full group-data-[state=collapsed]:group-hover:aspect-auto",
   {
     variants: {
       variant: {
@@ -530,9 +554,9 @@ const sidebarMenuButtonVariants = cva(
           "bg-background shadow-[0_0_0_1px_hsl(var(--sidebar-border))] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-[0_0_0_1px_hsl(var(--sidebar-accent))]",
       },
       size: {
-        default: "h-9 text-sm", // Adjusted height
-        sm: "h-8 text-xs", // Adjusted height
-        lg: "h-10 text-sm", // Adjusted height
+        default: "h-9 text-sm", 
+        sm: "h-8 text-xs", 
+        lg: "h-10 text-sm", 
       },
     },
     defaultVariants: {
@@ -564,17 +588,34 @@ const SidebarMenuButton = React.forwardRef<
     ref
   ) => {
     const Comp = asChild ? Slot : "button"
-    const { isMobile, state } = useSidebar()
+    const { isMobile, state: sidebarPinnedState } = useSidebar()
 
-    const buttonContent = React.Children.map(children, child => {
-      if (React.isValidElement(child) && typeof child.type !== 'string' && (child.type as any).displayName === 'LucideIcon') {
-        return child; // Keep icon as is
+    const buttonContent = React.useMemo(() => 
+      React.Children.map(children, child => {
+      if (React.isValidElement(child) && typeof child.type !== 'string' && ((child.type as React.FC).displayName?.includes('LucideIcon') || child.props.className?.includes('lucide-'))) {
+        return child; 
       }
       if (typeof child === 'string') {
-        return <><span>{child}</span><span className="sr-only">{child}</span></>; // Text for expanded, sr-only for collapsed
+        // Text part: hidden if sidebar is collapsed AND NOT hovered by parent. Visible otherwise.
+        // SR part: visible if sidebar is collapsed AND NOT hovered by parent. Hidden otherwise.
+        return (
+          <>
+            <span className={cn(
+              "hidden", // Default hidden
+              "group-data-[state=expanded]:inline", // Visible if sidebar pinned open
+              "group-data-[state=collapsed]:group-hover:inline" // Visible if sidebar pinned collapsed AND parent is hovered
+            )}>{child}</span>
+            <span className={cn(
+              "sr-only", // Default sr-only
+              "group-data-[state=collapsed]:not(group-hover):not-sr-only group-data-[state=collapsed]:not(group-hover):inline", // Visible (not sr-only) if sidebar pinned collapsed AND parent NOT hovered
+              "group-data-[state=expanded]:sr-only", // sr-only if pinned open
+              "group-data-[state=collapsed]:group-hover:sr-only" // sr-only if pinned collapsed AND parent hovered
+            )}>{child}</span>
+          </>
+        );
       }
       return child;
-    });
+    }), [children]);
 
 
     const button = (
@@ -589,28 +630,32 @@ const SidebarMenuButton = React.forwardRef<
         {buttonContent}
       </Comp>
     )
+    
+    // Tooltip should only show when the sidebar is pinned collapsed AND not currently hovered (i.e., truly in icon-only mode)
+    // or if explicitly provided as a string/object for mobile (though mobile doesn't usually show tooltips like this)
+    const showTooltip = sidebarPinnedState === "collapsed" && !isMobile; // Simplified: show if pinned collapsed on desktop
 
-    if (!tooltip && state !== "collapsed") { // Only show tooltip when collapsed
-      return button
+    if (!tooltip || !showTooltip) {
+      return button;
     }
     
-    let tooltipContent: React.ReactNode = tooltip;
+    let tooltipContentNode: React.ReactNode = tooltip;
     if (typeof tooltip === 'string') {
-        tooltipContent = tooltip;
-    } else if (typeof children === 'string') {
-        tooltipContent = children;
+        tooltipContentNode = tooltip;
+    } else if (React.isValidElement(tooltip) && tooltip.props.children) {
+        tooltipContentNode = tooltip.props.children;
+    } else if (typeof children === 'string') { // Fallback to button text for tooltip
+        tooltipContentNode = children;
     } else {
         // Attempt to find a string child for tooltip if not explicitly provided
         React.Children.forEach(children, child => {
-            if (typeof child === 'string' && !tooltipContent) {
-                tooltipContent = child;
+            if (typeof child === 'string' && !tooltipContentNode) {
+                tooltipContentNode = child;
             }
         });
     }
 
-
-    if (!tooltipContent) return button;
-
+    if (!tooltipContentNode) return button;
 
     return (
       <Tooltip>
@@ -618,11 +663,16 @@ const SidebarMenuButton = React.forwardRef<
         <TooltipContent
           side="right"
           align="center"
-          alignOffset={4} // Adjust as needed
-          sideOffset={6} // Adjust as needed
-          hidden={state !== "collapsed" || isMobile}
+          alignOffset={4} 
+          sideOffset={6} 
+          // Tooltip should be hidden if the parent group (sidebar) is hovered when collapsed, or if expanded
+          // This means it's only visible when sidebar is collapsed AND not hovered.
+          className={cn(
+           "group-data-[state=expanded]:hidden",
+           "group-data-[state=collapsed]:group-hover:hidden"
+          )}
         >
-          {typeof tooltip === "object" && tooltip.children ? tooltip.children : tooltipContent}
+          {tooltipContentNode}
         </TooltipContent>
       </Tooltip>
     )
@@ -649,7 +699,8 @@ const SidebarMenuAction = React.forwardRef<
         "peer-data-[size=sm]/menu-button:top-1/2",
         "peer-data-[size=default]/menu-button:top-1/2",
         "peer-data-[size=lg]/menu-button:top-1/2",
-        "group-data-[state=collapsed]:hidden",
+        "group-data-[state=collapsed]:not(group-hover):hidden", // Hide if collapsed AND not hovered
+        "group-data-[state=collapsed]:group-hover:flex", // Show if collapsed AND hovered
         showOnHover &&
           "group-focus-within/menu-item:opacity-100 group-hover/menu-item:opacity-100 data-[state=open]:opacity-100 peer-data-[active=true]/menu-button:text-sidebar-accent-foreground md:opacity-0",
         className
@@ -672,7 +723,8 @@ const SidebarMenuBadge = React.forwardRef<
     className={cn(
       "absolute right-1 top-1/2 -translate-y-1/2 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-xs font-medium tabular-nums text-sidebar-foreground select-none pointer-events-none",
       "peer-hover/menu-button:text-sidebar-accent-foreground peer-data-[active=true]/menu-button:text-sidebar-accent-foreground",
-       "group-data-[state=collapsed]:hidden",
+       "group-data-[state=collapsed]:not(group-hover):hidden", // Hide if collapsed AND not hovered
+       "group-data-[state=collapsed]:group-hover:flex", // Show if collapsed AND hovered
       className
     )}
     {...props}
@@ -694,7 +746,10 @@ const SidebarMenuSkeleton = React.forwardRef<
     <div
       ref={ref}
       data-sidebar="menu-skeleton"
-      className={cn("rounded-md h-8 flex gap-2 px-2 items-center group-data-[state=collapsed]:w-8 group-data-[state=collapsed]:justify-center group-data-[state=collapsed]:px-0", className)}
+      className={cn("rounded-md h-8 flex gap-2 px-2 items-center",
+      "group-data-[state=collapsed]:not(group-hover):w-8 group-data-[state=collapsed]:not(group-hover):justify-center group-data-[state=collapsed]:not(group-hover):px-0",
+      "group-data-[state=collapsed]:group-hover:w-full group-data-[state=collapsed]:group-hover:justify-start group-data-[state=collapsed]:group-hover:px-2", // Full width when hovered
+      className)}
       {...props}
     >
       {showIcon && (
@@ -704,7 +759,10 @@ const SidebarMenuSkeleton = React.forwardRef<
         />
       )}
       <Skeleton
-        className="h-4 flex-1 max-w-[--skeleton-width] group-data-[state=collapsed]:hidden"
+        className={cn("h-4 flex-1 max-w-[--skeleton-width]",
+        "group-data-[state=collapsed]:not(group-hover):hidden", // Hide text if collapsed AND not hovered
+        "group-data-[state=collapsed]:group-hover:inline-block" // Show text if collapsed AND hovered
+       )}
         data-sidebar="menu-skeleton-text"
         style={
           {
@@ -726,7 +784,8 @@ const SidebarMenuSub = React.forwardRef<
     data-sidebar="menu-sub"
     className={cn(
       "mx-3.5 flex min-w-0 translate-x-px flex-col gap-1 border-l border-sidebar-border px-2.5 py-0.5",
-      "group-data-[state=collapsed]:hidden",
+      "group-data-[state=collapsed]:not(group-hover):hidden",
+      "group-data-[state=collapsed]:group-hover:flex",
       className
     )}
     {...props}
@@ -761,7 +820,8 @@ const SidebarMenuSubButton = React.forwardRef<
         "data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground",
         size === "sm" && "text-xs",
         size === "md" && "text-sm",
-        "group-data-[state=collapsed]:hidden",
+        "group-data-[state=collapsed]:not(group-hover):hidden", // Hide if collapsed AND not hovered
+        "group-data-[state=collapsed]:group-hover:flex", // Show if collapsed AND hovered
         className
       )}
       {...props}
@@ -798,4 +858,3 @@ export {
   SidebarTrigger,
   useSidebar,
 }
-

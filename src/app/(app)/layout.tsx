@@ -23,15 +23,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   const mockUser = {
     name: "Usuario Ejemplo",
-    role: "Personal",
+    email: "usuario@ejemplo.com", // Added email for consistency with header
+    role: "Personal", // Role for footer
   };
 
-  // Determine if sidebar should be open by default on desktop
+  // Sidebar should be collapsed by default on desktop
   // For mobile, SidebarProvider's internal logic for Sheet handles it.
-  const defaultOpenDesktop = !isMobileHook;
+  // User's preference (pinned state) will be loaded from cookie by SidebarProvider.
+  const defaultOpenDesktop = false; 
 
   return (
-    <SidebarProvider defaultOpen={defaultOpenDesktop} open={defaultOpenDesktop}>
+    <SidebarProvider defaultOpen={isMobileHook ? false : defaultOpenDesktop}>
       <div className="flex flex-col min-h-screen">
         <AppHeader />
         <div className="flex flex-1">
@@ -43,7 +45,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <SidebarHeader className="border-b border-sidebar-border h-16 flex items-center">
                <Link href="/dashboard" className="flex items-center gap-2 w-full px-2">
                   <Stethoscope className="h-7 w-7 text-sidebar-primary" />
-                  <span className="text-xl font-semibold text-sidebar-foreground group-data-[collapsible=icon]:hidden">
+                  <span className="text-xl font-semibold text-sidebar-foreground group-data-[state=collapsed]:group-hover:inline group-data-[state=collapsed]:hidden">
                     MediSchedule
                   </span>
                 </Link>
@@ -52,17 +54,22 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <AppSidebarContent />
             </SidebarContent>
             <SidebarFooter className="border-t border-sidebar-border p-2">
-              <div className="flex items-center gap-2 p-2 rounded-md bg-sidebar-accent/30 group-data-[collapsible=icon]:justify-center">
+              <div className="flex items-center gap-2 p-2 rounded-md bg-sidebar-accent/30 group-data-[collapsible=icon]:group-data-[state=collapsed]:not(group-hover):justify-center group-data-[state=collapsed]:group-hover:flex group-data-[state=collapsed]:hidden">
                 <UserCircle className="h-8 w-8 text-sidebar-foreground" />
-                <div className="group-data-[collapsible=icon]:hidden">
+                <div className="group-data-[state=collapsed]:group-hover:block group-data-[state=collapsed]:hidden">
                   <p className="text-sm font-medium text-sidebar-foreground">{mockUser.name}</p>
                   <p className="text-xs text-sidebar-foreground/80">{mockUser.role}</p>
                 </div>
               </div>
+               {/* Icon-only version for footer user info when collapsed and not hovered */}
+              <div className="hidden items-center gap-2 p-2 rounded-md bg-sidebar-accent/30 group-data-[collapsible=icon]:group-data-[state=collapsed]:not(group-hover):flex group-data-[collapsible=icon]:group-data-[state=collapsed]:not(group-hover):justify-center">
+                <UserCircle className="h-8 w-8 text-sidebar-foreground" />
+              </div>
+
               <Link href="/login" className="w-full">
-                <Button variant="ghost" size="sm" className="w-full justify-start mt-1 group-data-[collapsible=icon]:justify-center text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
+                <Button variant="ghost" size="sm" className="w-full justify-start mt-1 group-data-[collapsible=icon]:group-data-[state=collapsed]:not(group-hover):justify-center text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
                   <LogOut className="h-4 w-4" />
-                  <span className="ml-2 group-data-[collapsible=icon]:hidden">Cerrar Sesión</span>
+                  <span className="ml-2 group-data-[state=collapsed]:group-hover:inline group-data-[state=collapsed]:hidden">Cerrar Sesión</span>
                 </Button>
               </Link>
             </SidebarFooter>
