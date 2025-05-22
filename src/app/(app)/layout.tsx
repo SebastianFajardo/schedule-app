@@ -10,10 +10,11 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarInset,
+  useSidebar, // Import useSidebar
 } from "@/components/ui/sidebar";
 import AppSidebarContent from '@/components/layout/AppSidebarContent';
 import AppFooter from '@/components/layout/AppFooter';
-import { Stethoscope, UserCircle, LogOut } from 'lucide-react';
+import { Stethoscope, UserCircle, LogOut, Menu, PanelLeftClose } from 'lucide-react'; // Import Menu, PanelLeftClose
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { cn } from "@/lib/utils";
@@ -26,6 +27,7 @@ const mockUser = {
 
 // Sidebar inicia expandido en escritorio por defecto
 const defaultOpenDesktop = true;
+
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -44,14 +46,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           )}>
             <Link href="/dashboard" className={cn(
               "flex items-center gap-2",
-              // No need for justify classes here, parent SidebarHeader handles it
             )}>
               <Stethoscope className="h-7 w-7 text-sidebar-primary shrink-0" />
               <span className={cn(
                 "text-xl font-semibold text-sidebar-foreground truncate",
                 "group-data-[state=expanded]:inline", // Show if expanded
-                "group-data-[state=collapsed]:group-hover:inline", // Show if collapsed AND hovered
-                "group-data-[state=collapsed]:not(group-hover):hidden" // Hide if collapsed AND NOT hovered
+                "group-data-[state=collapsed]:hidden",   // Hide if collapsed (default for collapsed)
+                "group-data-[state=collapsed]:group-hover:inline" // Show if collapsed AND hovered
               )}>
                 MediSchedule
               </span>
@@ -71,8 +72,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <div className={cn(
                 "truncate",
                 "group-data-[state=expanded]:block",
-                "group-data-[state=collapsed]:group-hover:block",
-                "group-data-[state=collapsed]:not(group-hover):hidden"
+                "group-data-[state=collapsed]:hidden",
+                "group-data-[state=collapsed]:group-hover:block"
               )}>
                 <p className="text-sm font-medium text-sidebar-foreground">{mockUser.name}</p>
                 <p className="text-xs text-sidebar-foreground/80">{mockUser.role}</p>
@@ -89,8 +90,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <span className={cn(
                   "ml-2 truncate",
                   "group-data-[state=expanded]:inline",
-                  "group-data-[state=collapsed]:group-hover:inline",
-                  "group-data-[state=collapsed]:not(group-hover):hidden"
+                  "group-data-[state=collapsed]:hidden",
+                  "group-data-[state=collapsed]:group-hover:inline"
                 )}>Cerrar Sesión</span>
               </Button>
             </Link>

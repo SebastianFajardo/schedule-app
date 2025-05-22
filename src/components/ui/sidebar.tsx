@@ -56,14 +56,14 @@ function useSidebar() {
 const SidebarProvider = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div"> & {
-    defaultOpen?: boolean // This is now the primary desktop default
+    defaultOpen?: boolean
     open?: boolean
     onOpenChange?: (open: boolean) => void
   }
 >(
   (
     {
-      defaultOpen = true, // This will be the consistent initial value from AppLayout
+      defaultOpen = true, 
       open: openProp,
       onOpenChange: setOpenProp,
       className,
@@ -73,75 +73,79 @@ const SidebarProvider = React.forwardRef<
     },
     ref
   ) => {
-    const isMobileHook = useIsMobile()
-    const [openMobile, setOpenMobile] = React.useState(false)
-    const [_open, _setOpen] = React.useState(defaultOpen); // Initialize with prop for SSR consistency
+    const isMobileHook = useIsMobile() // Initial check, might be undefined SSR
+    const [openMobile, setOpenMobile] = React.useState(false);
+    // Initialize _open purely from defaultOpen for SSR, client useEffect will adjust
+    const [_open, _setOpen] = React.useState(defaultOpen); 
 
     React.useEffect(() => {
-      // Client-side adjustments
-      if (isMobileHook) {
-        _setOpen(false); // Force closed on mobile initially after mount
-        if (openProp !== undefined && onOpenChange) { // If controlled on mobile
-          onOpenChange(false);
+      // This effect runs only on the client after mount
+      const currentIsMobile = window.innerWidth < MOBILE_BREAKPOINT;
+      if (currentIsMobile) {
+        _setOpen(false); // Always close on mobile after mount if uncontrolled
+        if (setOpenProp && openProp !== false) {
+           setOpenProp(false); // If controlled, tell parent to close
         }
       } else {
-        // Desktop: check cookie after mount
+        // Desktop: check cookie
         const cookieValue = document.cookie
           .split("; ")
           .find((row) => row.startsWith(`${SIDEBAR_COOKIE_NAME}=`))
           ?.split("=")[1];
         
         if (cookieValue !== undefined) {
-           const cookieOpenState = cookieValue === "true";
-            if (openProp === undefined) { // Only set if uncontrolled
-                 _setOpen(cookieOpenState);
-            } else if (onOpenChange && openProp !== cookieOpenState) { // If controlled and different from cookie
-                // Potentially notify parent, or let parent's `openProp` take precedence
-                // For now, we assume parent `openProp` is the source of truth if provided
-            }
+          const cookieOpenState = cookieValue === "true";
+          if (!setOpenProp) { // If uncontrolled, set by cookie
+            _setOpen(cookieOpenState);
+          }
+          // If controlled, openProp takes precedence, cookie is just for next uncontrolled session
         } else {
-            // No cookie, maintain defaultOpen (already set in useState) or controlled prop
-             if (openProp === undefined) {
-                _setOpen(defaultOpen);
-             }
+           // No cookie, and uncontrolled: use defaultOpen (already set in useState)
+           // If controlled, openProp takes precedence
+           if (!setOpenProp) {
+            _setOpen(defaultOpen);
+           }
         }
       }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isMobileHook, defaultOpen]); // Rerun if isMobileHook changes or defaultOpen (though defaultOpen should be stable)
-                                     // openProp and onOpenChange are intentionally omitted from deps if we want them to only influence the controlled aspect
-
+    }, [defaultOpen, setOpenProp]); // isMobileHook removed, we check window.innerWidth directly on client
+                                    // openProp is part of controlled logic, not for this effect's direct deps
 
     const open = openProp ?? _open;
 
     const setOpen = React.useCallback(
       (value: boolean | ((value: boolean) => boolean)) => {
+        const currentIsMobile = typeof window !== 'undefined' && window.innerWidth < MOBILE_BREAKPOINT;
         const newOpenState = typeof value === "function" ? value(open) : value;
+        
         if (setOpenProp) {
           setOpenProp(newOpenState);
         } else {
           _setOpen(newOpenState);
         }
-        if (!isMobileHook) { 
+
+        if (!currentIsMobile) { 
           document.cookie = `${SIDEBAR_COOKIE_NAME}=${newOpenState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
         }
       },
-      [setOpenProp, open, isMobileHook, _setOpen] // Added _setOpen
+      [setOpenProp, open, _setOpen] 
     );
     
-
     const toggleSidebar = React.useCallback(() => {
-      if (isMobileHook) {
+      const currentIsMobile = typeof window !== 'undefined' && window.innerWidth < MOBILE_BREAKPOINT;
+      if (currentIsMobile) {
         setOpenMobile((current) => !current);
       } else {
         setOpen((current) => !current);
       }
-    }, [isMobileHook, setOpen, setOpenMobile]);
+    }, [setOpen, setOpenMobile]);
 
     React.useEffect(() => {
       const handleKeyDown = (event: KeyboardEvent) => {
+        const currentIsMobile = typeof window !== 'undefined' && window.innerWidth < MOBILE_BREAKPOINT;
         if (
           event.key === SIDEBAR_KEYBOARD_SHORTCUT &&
-          (event.metaKey || event.ctrlKey) && !isMobileHook // Only for desktop
+          (event.metaKey || event.ctrlKey) && !currentIsMobile
         ) {
           event.preventDefault();
           toggleSidebar();
@@ -150,8 +154,10 @@ const SidebarProvider = React.forwardRef<
 
       window.addEventListener("keydown", handleKeyDown);
       return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [toggleSidebar, isMobileHook]);
+    }, [toggleSidebar]);
 
+    // Determine isMobile for context based on the hook, which updates on client
+    const contextIsMobile = useIsMobile(); 
     const state = open ? "expanded" : "collapsed";
 
     const contextValue = React.useMemo<SidebarContext>(
@@ -159,12 +165,12 @@ const SidebarProvider = React.forwardRef<
         state,
         open,
         setOpen,
-        isMobile: !!isMobileHook, // Ensure boolean
+        isMobile: !!contextIsMobile, 
         openMobile,
         setOpenMobile,
         toggleSidebar,
       }),
-      [state, open, setOpen, isMobileHook, openMobile, setOpenMobile, toggleSidebar]
+      [state, open, setOpen, contextIsMobile, openMobile, setOpenMobile, toggleSidebar]
     );
 
     return (
@@ -179,7 +185,7 @@ const SidebarProvider = React.forwardRef<
               } as React.CSSProperties
             }
             className={cn(
-              "group/sidebar-wrapper flex min-h-screen",
+              "group/sidebar-wrapper", // Removed flex min-h-screen here, handled by AppLayout
               className
             )}
             ref={ref}
@@ -219,8 +225,8 @@ const Sidebar = React.forwardRef<
       return (
         <aside 
           className={cn(
-            "flex h-screen flex-col bg-sidebar text-sidebar-foreground", // Added h-screen
-            "w-[--sidebar-width]", // Always use full width if not collapsible
+            "flex h-screen flex-col bg-sidebar text-sidebar-foreground",
+            "w-[--sidebar-width]", 
             variant === 'floating' || variant === 'inset' ? 'm-2 rounded-lg shadow-lg' : 'border-r border-sidebar-border',
             className
           )}
@@ -246,7 +252,6 @@ const Sidebar = React.forwardRef<
             }
             side={side}
           >
-            {/* Ensure SheetTitle is present for accessibility, can be sr-only */}
             <SheetTitle className="sr-only">Menú de Navegación Principal</SheetTitle> 
             {children}
           </SheetContent>
@@ -258,12 +263,12 @@ const Sidebar = React.forwardRef<
       <aside 
         ref={ref}
         className={cn(
-          "group peer hidden md:flex flex-col text-sidebar-foreground bg-sidebar h-screen", // Added h-screen
+          "group peer hidden md:flex flex-col text-sidebar-foreground bg-sidebar h-screen", 
           "transition-all duration-200 ease-in-out", 
           'w-[--sidebar-width-icon]', 
           'data-[state=expanded]:w-[--sidebar-width]', 
           'data-[state=collapsed]:hover:w-[--sidebar-width]', 
-          variant === 'floating' || variant === 'inset' ? 'm-2 rounded-lg shadow-lg !h-[calc(100vh-1rem)]' : 'border-r border-sidebar-border', // Adjusted height for floating/inset
+          variant === 'floating' || variant === 'inset' ? 'm-2 rounded-lg shadow-lg !h-[calc(100vh-1rem)]' : 'border-r border-sidebar-border',
           className
         )}
         data-state={state} 
@@ -304,7 +309,7 @@ const SidebarTrigger = React.forwardRef<
         toggleSidebar(); 
       }}
     >
-      {asChild && children ? children : (
+      {children ? children : ( // Pass children if provided (asChild case)
         <>
           {defaultIcon}
           <span className="sr-only">{defaultSrText}</span>
@@ -344,9 +349,10 @@ const SidebarInput = React.forwardRef<
       data-sidebar="input"
       className={cn(
         "h-8 w-full bg-background text-sm shadow-none focus-visible:ring-2 focus-visible:ring-sidebar-ring",
-        "group-data-[state=expanded]:flex",
-        "group-data-[state=collapsed]:group-hover:flex",
-        "group-data-[state=collapsed]:not(group-hover):hidden",
+        "group-data-[state=expanded]:flex",             // If sidebar expanded, show
+        "group-data-[state=collapsed]:hidden",          // If sidebar collapsed, hide by default
+        "group-data-[state=collapsed]:group-hover:flex" // If sidebar collapsed AND hovered, show
+        ,
         className
       )}
       {...props}
@@ -454,8 +460,8 @@ const SidebarGroupLabel = React.forwardRef<
       className={cn(
         "duration-200 flex h-8 shrink-0 items-center rounded-md px-2 text-xs font-medium text-sidebar-foreground/70 outline-none ring-sidebar-ring transition-[margin,opacity] ease-linear focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0",
         "group-data-[state=expanded]:flex",
-        "group-data-[state=collapsed]:group-hover:flex",
-        "group-data-[state=collapsed]:not(group-hover):hidden",
+        "group-data-[state=collapsed]:hidden", // Default hide when collapsed
+        "group-data-[state=collapsed]:group-hover:flex", // Show on hover when collapsed
         className
       )}
       {...props}
@@ -480,8 +486,8 @@ const SidebarGroupAction = React.forwardRef<
         "absolute right-3 top-3.5 flex aspect-square w-5 items-center justify-center rounded-md p-0 text-sidebar-foreground outline-none ring-sidebar-ring transition-transform hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0",
         "after:absolute after:-inset-2 after:md:hidden",
         "group-data-[state=expanded]:flex",
+        "group-data-[state=collapsed]:hidden",
         "group-data-[state=collapsed]:group-hover:flex",
-        "group-data-[state=collapsed]:not(group-hover):hidden",
         className
       )}
       {...props}
@@ -612,10 +618,10 @@ const SidebarMenuButton = React.forwardRef<
       <>
         {iconChild && React.cloneElement(iconChild as React.ReactElement, { className: cn((iconChild as React.ReactElement).props.className, "shrink-0") })}
         <span className={cn(
-          "truncate",
-          "group-data-[state=expanded]:inline",
-          "group-data-[state=collapsed]:group-hover:inline",
-          "group-data-[state=collapsed]:not(group-hover):hidden"
+          "truncate", // Base styles
+          "group-data-[state=expanded]:inline",             // If sidebar expanded, show text
+          "group-data-[state=collapsed]:hidden",            // If sidebar collapsed, hide text by default
+          "group-data-[state=collapsed]:group-hover:inline" // If sidebar collapsed AND hovered, show text
         )}>
           {textChildrenArray}
         </span>
@@ -693,8 +699,8 @@ const SidebarMenuAction = React.forwardRef<
         "peer-data-[size=default]/menu-button:top-1/2",
         "peer-data-[size=lg]/menu-button:top-1/2",
         "group-data-[state=expanded]:flex",
+        "group-data-[state=collapsed]:hidden",
         "group-data-[state=collapsed]:group-hover:flex",
-        "group-data-[state=collapsed]:not(group-hover):hidden",
         showOnHover &&
           "group-focus-within/menu-item:opacity-100 group-hover/menu-item:opacity-100 data-[state=open]:opacity-100 peer-data-[active=true]/menu-button:text-sidebar-accent-foreground md:opacity-0",
         className
@@ -718,8 +724,8 @@ const SidebarMenuBadge = React.forwardRef<
       "absolute right-1 top-1/2 -translate-y-1/2 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-xs font-medium tabular-nums text-sidebar-foreground select-none pointer-events-none",
       "peer-hover/menu-button:text-sidebar-accent-foreground peer-data-[active=true]/menu-button:text-sidebar-accent-foreground",
       "group-data-[state=expanded]:flex",
+      "group-data-[state=collapsed]:hidden",
       "group-data-[state=collapsed]:group-hover:flex",
-      "group-data-[state=collapsed]:not(group-hover):hidden",
       className
     )}
     {...props}
@@ -782,8 +788,8 @@ const SidebarMenuSub = React.forwardRef<
     className={cn(
       "mx-3.5 flex min-w-0 translate-x-px flex-col gap-1 border-l border-sidebar-border px-2.5 py-0.5",
       "group-data-[state=expanded]:flex",
+      "group-data-[state=collapsed]:hidden",
       "group-data-[state=collapsed]:group-hover:flex",
-      "group-data-[state=collapsed]:not(group-hover):hidden",
       className
     )}
     {...props}
@@ -819,8 +825,8 @@ const SidebarMenuSubButton = React.forwardRef<
         size === "sm" && "text-xs",
         size === "md" && "text-sm",
         "group-data-[state=expanded]:flex",
+        "group-data-[state=collapsed]:hidden",
         "group-data-[state=collapsed]:group-hover:flex",
-        "group-data-[state=collapsed]:not(group-hover):hidden",
         className
       )}
       {...props}
