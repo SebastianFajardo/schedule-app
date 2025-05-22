@@ -10,11 +10,11 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarInset,
-  useSidebar, // Import useSidebar
+  useSidebar,
 } from "@/components/ui/sidebar";
 import AppSidebarContent from '@/components/layout/AppSidebarContent';
 import AppFooter from '@/components/layout/AppFooter';
-import { Stethoscope, UserCircle, LogOut, Menu, PanelLeftClose } from 'lucide-react'; // Import Menu, PanelLeftClose
+import { Stethoscope, UserCircle, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { cn } from "@/lib/utils";
@@ -25,17 +25,15 @@ const mockUser = {
   role: "Personal",
 };
 
-// Sidebar inicia expandido en escritorio por defecto
-const defaultOpenDesktop = true;
-
+const defaultOpenDesktop = true; // Sidebar inicia expandido en escritorio por defecto
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider defaultOpen={defaultOpenDesktop}>
-      <div className="flex flex-row min-h-screen bg-background"> {/* Main flex direction is ROW */}
+      <div className="flex flex-row min-h-screen bg-background">
         <Sidebar
           variant="sidebar"
-          collapsible={"icon"}
+          collapsible="icon"
           className="border-r border-sidebar-border shadow-md"
         >
           <SidebarHeader className={cn(
@@ -50,9 +48,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <Stethoscope className="h-7 w-7 text-sidebar-primary shrink-0" />
               <span className={cn(
                 "text-xl font-semibold text-sidebar-foreground truncate",
-                "group-data-[state=expanded]:inline", // Show if expanded
-                "group-data-[state=collapsed]:hidden",   // Hide if collapsed (default for collapsed)
-                "group-data-[state=collapsed]:group-hover:inline" // Show if collapsed AND hovered
+                "group-data-[state=collapsed]:not(group-hover):hidden", // Oculto si colapsado y SIN hover
+                "group-data-[state=expanded]:inline",                  // Visible si expandido
+                "group-data-[state=collapsed]:group-hover:inline"     // Visible si colapsado Y CON hover
               )}>
                 MediSchedule
               </span>
@@ -71,8 +69,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <UserCircle className="h-8 w-8 text-sidebar-foreground shrink-0" />
               <div className={cn(
                 "truncate",
+                "group-data-[state=collapsed]:not(group-hover):hidden",
                 "group-data-[state=expanded]:block",
-                "group-data-[state=collapsed]:hidden",
                 "group-data-[state=collapsed]:group-hover:block"
               )}>
                 <p className="text-sm font-medium text-sidebar-foreground">{mockUser.name}</p>
@@ -89,8 +87,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <LogOut className="h-4 w-4 shrink-0" />
                 <span className={cn(
                   "ml-2 truncate",
+                  "group-data-[state=collapsed]:not(group-hover):hidden",
                   "group-data-[state=expanded]:inline",
-                  "group-data-[state=collapsed]:hidden",
                   "group-data-[state=collapsed]:group-hover:inline"
                 )}>Cerrar Sesión</span>
               </Button>
@@ -98,7 +96,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </SidebarFooter>
         </Sidebar>
 
-        <SidebarInset className="flex-1 flex flex-col overflow-y-auto"> {/* Ensures SidebarInset grows and handles overflow */}
+        <SidebarInset className="flex-1 flex flex-col overflow-y-auto">
           <AppHeader />
           <main className="flex-1 p-4 sm:p-6 lg:p-8">
             {children}
