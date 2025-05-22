@@ -9,7 +9,7 @@
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { VariantProps, cva } from "class-variance-authority"
-import { Menu } from "lucide-react";
+import { Menu, PanelLeftClose } from "lucide-react"; // Added PanelLeftClose
 
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
@@ -31,6 +31,7 @@ const SIDEBAR_WIDTH = "16rem"
 const SIDEBAR_WIDTH_MOBILE = "18rem"
 const SIDEBAR_WIDTH_ICON = "3.5rem" 
 const SIDEBAR_KEYBOARD_SHORTCUT = "b"
+const MOBILE_BREAKPOINT = 768; // Define MOBILE_BREAKPOINT here
 
 type SidebarContext = {
   state: "expanded" | "collapsed"
@@ -73,21 +74,19 @@ const SidebarProvider = React.forwardRef<
     },
     ref
   ) => {
-    const isMobileHook = useIsMobile() // Initial check, might be undefined SSR
+    const isMobileHook = useIsMobile();
     const [openMobile, setOpenMobile] = React.useState(false);
-    // Initialize _open purely from defaultOpen for SSR, client useEffect will adjust
     const [_open, _setOpen] = React.useState(defaultOpen); 
 
     React.useEffect(() => {
       // This effect runs only on the client after mount
       const currentIsMobile = window.innerWidth < MOBILE_BREAKPOINT;
       if (currentIsMobile) {
-        _setOpen(false); // Always close on mobile after mount if uncontrolled
+        _setOpen(false); 
         if (setOpenProp && openProp !== false) {
-           setOpenProp(false); // If controlled, tell parent to close
+           setOpenProp(false); 
         }
       } else {
-        // Desktop: check cookie
         const cookieValue = document.cookie
           .split("; ")
           .find((row) => row.startsWith(`${SIDEBAR_COOKIE_NAME}=`))
@@ -95,21 +94,16 @@ const SidebarProvider = React.forwardRef<
         
         if (cookieValue !== undefined) {
           const cookieOpenState = cookieValue === "true";
-          if (!setOpenProp) { // If uncontrolled, set by cookie
+          if (!setOpenProp) { 
             _setOpen(cookieOpenState);
           }
-          // If controlled, openProp takes precedence, cookie is just for next uncontrolled session
         } else {
-           // No cookie, and uncontrolled: use defaultOpen (already set in useState)
-           // If controlled, openProp takes precedence
            if (!setOpenProp) {
             _setOpen(defaultOpen);
            }
         }
       }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [defaultOpen, setOpenProp]); // isMobileHook removed, we check window.innerWidth directly on client
-                                    // openProp is part of controlled logic, not for this effect's direct deps
+    }, [defaultOpen, setOpenProp, isMobileHook, openProp]); // Added isMobileHook and openProp
 
     const open = openProp ?? _open;
 
@@ -156,7 +150,6 @@ const SidebarProvider = React.forwardRef<
       return () => window.removeEventListener("keydown", handleKeyDown);
     }, [toggleSidebar]);
 
-    // Determine isMobile for context based on the hook, which updates on client
     const contextIsMobile = useIsMobile(); 
     const state = open ? "expanded" : "collapsed";
 
@@ -185,7 +178,7 @@ const SidebarProvider = React.forwardRef<
               } as React.CSSProperties
             }
             className={cn(
-              "group/sidebar-wrapper", // Removed flex min-h-screen here, handled by AppLayout
+              "group/sidebar-wrapper",
               className
             )}
             ref={ref}
@@ -309,7 +302,7 @@ const SidebarTrigger = React.forwardRef<
         toggleSidebar(); 
       }}
     >
-      {children ? children : ( // Pass children if provided (asChild case)
+      {children ? children : ( 
         <>
           {defaultIcon}
           <span className="sr-only">{defaultSrText}</span>
@@ -329,7 +322,7 @@ const SidebarInset = React.forwardRef<
     <main 
       ref={ref}
       className={cn(
-        "relative flex-1 flex flex-col bg-background", 
+        "relative flex-1 flex flex-col bg-background overflow-y-auto", // Added overflow-y-auto
         "md:peer-data-[variant=inset]:m-2 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow-lg",
         className
       )}
@@ -349,10 +342,9 @@ const SidebarInput = React.forwardRef<
       data-sidebar="input"
       className={cn(
         "h-8 w-full bg-background text-sm shadow-none focus-visible:ring-2 focus-visible:ring-sidebar-ring",
-        "group-data-[state=expanded]:flex",             // If sidebar expanded, show
-        "group-data-[state=collapsed]:hidden",          // If sidebar collapsed, hide by default
-        "group-data-[state=collapsed]:group-hover:flex" // If sidebar collapsed AND hovered, show
-        ,
+        "group-data-[state=expanded]:flex",
+        "group-data-[state=collapsed]:hidden",
+        "group-data-[state=collapsed]:group-hover:flex",
         className
       )}
       {...props}
@@ -460,8 +452,8 @@ const SidebarGroupLabel = React.forwardRef<
       className={cn(
         "duration-200 flex h-8 shrink-0 items-center rounded-md px-2 text-xs font-medium text-sidebar-foreground/70 outline-none ring-sidebar-ring transition-[margin,opacity] ease-linear focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0",
         "group-data-[state=expanded]:flex",
-        "group-data-[state=collapsed]:hidden", // Default hide when collapsed
-        "group-data-[state=collapsed]:group-hover:flex", // Show on hover when collapsed
+        "group-data-[state=collapsed]:hidden", 
+        "group-data-[state=collapsed]:group-hover:flex",
         className
       )}
       {...props}
@@ -600,15 +592,15 @@ const SidebarMenuButton = React.forwardRef<
     React.Children.forEach(children, child => {
         if (typeof child === 'string') {
             textChildrenArray.push(child);
-        } else if (React.isValidElement(child) && child.type === React.Fragment) {
+        } else if (React.isValidElement(child) && child.type === React.Fragment) { // Handle React.Fragment
             React.Children.forEach(child.props.children, fragmentChild => {
                 if (typeof fragmentChild === 'string') {
                     textChildrenArray.push(fragmentChild);
-                } else if (React.isValidElement(fragmentChild) && typeof fragmentChild.type === 'string') {
+                } else if (React.isValidElement(fragmentChild) && typeof fragmentChild.type === 'string') { // e.g. <span>text</span>
                      textChildrenArray.push(fragmentChild); 
                 }
             });
-        } else if (React.isValidElement(child) && typeof child.type === 'string') {
+        } else if (React.isValidElement(child) && typeof child.type === 'string') { // e.g. <span>text</span>
             textChildrenArray.push(child); 
         }
     });
@@ -618,10 +610,10 @@ const SidebarMenuButton = React.forwardRef<
       <>
         {iconChild && React.cloneElement(iconChild as React.ReactElement, { className: cn((iconChild as React.ReactElement).props.className, "shrink-0") })}
         <span className={cn(
-          "truncate", // Base styles
-          "group-data-[state=expanded]:inline",             // If sidebar expanded, show text
-          "group-data-[state=collapsed]:hidden",            // If sidebar collapsed, hide text by default
-          "group-data-[state=collapsed]:group-hover:inline" // If sidebar collapsed AND hovered, show text
+          "truncate",
+          "group-data-[state=expanded]:inline",
+          "group-data-[state=collapsed]:hidden",
+          "group-data-[state=collapsed]:group-hover:inline"
         )}>
           {textChildrenArray}
         </span>
