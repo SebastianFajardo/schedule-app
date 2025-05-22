@@ -6,19 +6,19 @@ import AppHeader from "@/components/layout/AppHeader";
 import {
   SidebarProvider,
   Sidebar,
-  SidebarInset,
   SidebarHeader,
   SidebarContent,
   SidebarFooter,
+  SidebarInset,
 } from "@/components/ui/sidebar";
 import AppSidebarContent from '@/components/layout/AppSidebarContent';
 import AppFooter from '@/components/layout/AppFooter';
-import { Stethoscope, UserCircle, LogOut, Menu, PanelLeftClose } from 'lucide-react';
+import { Stethoscope, UserCircle, LogOut } from 'lucide-react'; // Removed Menu, PanelLeftClose as they are handled in AppHeader
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from "@/lib/utils";
-import { useSidebar } from "@/components/ui/sidebar"; // Import useSidebar
+// Removed useSidebar import here as it's not directly used for toggle in this specific way anymore for DesktopSidebarHeaderContent
 
 const mockUser = {
   name: "Usuario Ejemplo",
@@ -26,7 +26,8 @@ const mockUser = {
   role: "Personal",
 };
 
-const defaultOpenDesktop = true; // Sidebar inicia expandido en escritorio
+// Sidebar inicia expandido en escritorio por defecto
+const defaultOpenDesktop = true; 
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const isMobileHook = useIsMobile();
@@ -36,12 +37,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <div className="flex flex-row min-h-screen bg-background"> {/* Main flex direction is ROW */}
         <Sidebar
           variant="sidebar"
-          collapsible={isMobileHook ? "offcanvas" : "icon"}
-          className="border-r border-sidebar-border shadow-md" // Sidebar a la izquierda
+          collapsible={"icon"} // Always allow icon collapse for desktop logic
+          className="border-r border-sidebar-border shadow-md" 
         >
           <SidebarHeader className={cn(
             "border-b border-sidebar-border h-16 flex items-center px-2",
-            "justify-start"
+            "group-data-[state=expanded]:justify-start",
+            "group-data-[state=collapsed]:group-hover:justify-start",
+            "group-data-[state=collapsed]:not(group-hover):justify-center" 
           )}>
             <Link href="/dashboard" className="flex items-center gap-2">
               <Stethoscope className="h-7 w-7 text-sidebar-primary shrink-0" />
@@ -77,7 +80,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               </div>
             </div>
             <Link href="/login" className="w-full">
-              <Button variant="ghost" size="sm" className="w-full justify-start mt-1 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground group-data-[state=collapsed]:not(group-hover):justify-center">
+              <Button variant="ghost" size="sm" className={cn(
+                "w-full justify-start mt-1 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                "group-data-[state=collapsed]:not(group-hover):justify-center"
+              )}>
                 <LogOut className="h-4 w-4 shrink-0" />
                 <span className={cn(
                   "ml-2 truncate",
@@ -90,9 +96,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </SidebarFooter>
         </Sidebar>
 
-        <SidebarInset className="flex-1 flex flex-col overflow-y-auto"> {/* SidebarInset es flex-col y contiene Header, Main, Footer */}
-          <AppHeader /> {/* AppHeader ahora está DENTRO de SidebarInset */}
-          <main className="flex-1 p-4 sm:p-6 lg:p-8"> {/* Main content area */}
+        <SidebarInset className="flex-1 flex flex-col overflow-y-auto">
+          <AppHeader />
+          <main className="flex-1 p-4 sm:p-6 lg:p-8">
             {children}
           </main>
           <AppFooter />
