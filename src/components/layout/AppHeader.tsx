@@ -14,7 +14,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { usePathname } from "next/navigation";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar"; // Import useSidebar and SidebarTrigger
+import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
+// SheetTitle is not needed here, it's handled by Sidebar component for mobile sheet
 
 const mockUser = {
   name: "Dra. Ana Pérez",
@@ -24,42 +25,33 @@ const mockUser = {
 
 export default function AppHeader() {
   const pathname = usePathname();
-  const isMobile = useIsMobile(); // From use-mobile hook
-  const { isMobile: isMobileContext } = useSidebar(); // From SidebarContext, preferred for sidebar interactions
+  const isMobile = useIsMobile(); 
+  const { isMobile: isMobileContext } = useSidebar(); 
 
-  const showSidebarToggle = !pathname.startsWith("/login") && !pathname.startsWith("/register") && pathname !== "/";
+  const showSidebarToggle = !pathname.startsWith("/login") && !pathname.startsWith("/register") && pathname !== "/" && mockUser;
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-card px-4 sm:px-6 shadow-sm">
       <div className="flex items-center gap-2">
-        {isMobileContext && showSidebarToggle && ( // Use isMobile from context for consistency
-          <SidebarTrigger variant="ghost" size="icon" className="shrink-0 h-8 w-8 md:h-7 md:w-7">
-            <Menu className="h-5 w-5" />
-            <span className="sr-only">Alternar menú de navegación</span>
+        {isMobileContext && showSidebarToggle && (
+          <SidebarTrigger asChild>
+            <Button variant="ghost" size="icon" className="shrink-0 h-8 w-8">
+              <Menu className="h-5 w-5" />
+              <span className="sr-only">Alternar menú de navegación</span>
+            </Button>
           </SidebarTrigger>
         )}
-         {/* Logo/Title part for desktop, or for mobile when sidebar toggle isn't shown */}
-         {(!isMobileContext || !showSidebarToggle) && (
-            <Link href={mockUser ? "/dashboard" : "/"} className="flex items-center gap-2">
-              <Stethoscope className="h-7 w-7 text-primary" />
-              <span className="text-xl font-semibold text-primary">MediSchedule</span>
-            </Link>
-         )}
-         {/* On mobile, when sidebar toggle is shown, title might be redundant if sidebar itself shows it */}
-         {isMobileContext && showSidebarToggle && (
-           <Link href={mockUser ? "/dashboard" : "/"} className="flex items-center gap-1 sm:gap-2">
-             <Stethoscope className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
-             <span className="text-lg sm:text-xl font-semibold text-primary">MediSchedule</span>
-           </Link>
-         )}
-
+         <Link href={mockUser ? "/dashboard" : "/"} className="flex items-center gap-1 sm:gap-2">
+           <Stethoscope className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
+           <span className="text-lg sm:text-xl font-semibold text-primary">MediSchedule</span>
+         </Link>
       </div>
 
       {mockUser ? (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <User className="h-6 w-6" />
+            <Button variant="ghost" className="rounded-full h-8 w-8 p-0"> {/* Adjusted size */}
+              <User className="h-5 w-5" /> {/* Adjusted icon size */}
               <span className="sr-only">Alternar menú de usuario</span>
             </Button>
           </DropdownMenuTrigger>
