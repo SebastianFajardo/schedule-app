@@ -1,39 +1,16 @@
+
 import type { LucideIcon } from 'lucide-react';
 
-export interface NavItem {
-  title: string;
-  href: string;
-  icon: LucideIcon;
-  label?: string;
-  disabled?: boolean;
-  external?: boolean;
-  role?: 'patient' | 'staff' | 'admin'; 
-}
+// NavItem, Appointment, Patient, MedicalStaff types have been removed
+// as their consuming components, pages, or data files were deleted.
 
-export interface Appointment {
-  id: string;
-  patientName: string;
-  doctorName: string;
-  specialty: string;
-  dateTime: Date;
-  status: 'Programada' | 'Cancelada' | 'Completada' | 'Pendiente de Aprobación' | 'No Asistió'; // Translated statuses
-  location: string;
-  notes?: string;
-  videoCallLink?: string;
-  files?: File[]; 
-}
+// If you re-add features that need these types, you can reinstate them here.
 
-export interface Patient {
-  id: string;
-  name: string;
-  email: string;
-  phone?: string;
-}
+// Example of a type that might remain:
+// export interface SimpleSettings {
+//   theme: 'light' | 'dark';
+//   language: string;
+// }
 
-export interface MedicalStaff {
-  id: string;
-  name: string;
-  email: string;
-  specialty: string;
-  role: 'doctor' | 'nurse' | 'admin'; // Consider translating roles if displayed in UI
-}
+// It's possible no custom types are needed if the app is extremely simple.
+// LucideIcon is kept in case any remaining UI elements use it directly, though unlikely in this minimal setup.

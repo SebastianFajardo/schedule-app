@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -5,7 +6,6 @@ import { Stethoscope, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label"; // Keep if used directly, FormLabel is preferred within Form
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -33,23 +33,16 @@ export default function LoginPage() {
   });
 
   const onSubmit = async (data: LoginFormValues) => {
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    console.log("Login data:", data);
+    await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
     
-    if (data.email === "personal@medischedule.com" && data.password === "password") { // Updated credentials
+    // Simplified mock login
+    if (data.email === "usuario@example.com" && data.password === "password") { 
       toast({
         title: "Inicio de Sesión Exitoso",
-        description: "¡Bienvenida de nuevo, Dra. Pérez!",
+        description: "¡Bienvenido/a de nuevo!",
       });
-      router.push("/dashboard"); 
-    } else if (data.email === "paciente@medischedule.com" && data.password === "password") { // Updated credentials
-       toast({
-        title: "Inicio de Sesión Exitoso",
-        description: "¡Bienvenido de nuevo!",
-      });
-      router.push("/appointments"); 
-    }
-    else {
+      router.push("/"); // Redirect to landing page
+    } else {
       toast({
         variant: "destructive",
         title: "Falló el Inicio de Sesión",
@@ -68,7 +61,7 @@ export default function LoginPage() {
             <Stethoscope className="h-10 w-10 text-primary-foreground" />
           </div>
           <CardTitle className="text-3xl font-bold text-primary">Bienvenido a MediSchedule</CardTitle>
-          <CardDescription>Ingresa tus credenciales para acceder a tu cuenta</CardDescription>
+          <CardDescription>Ingresa tus credenciales para acceder</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -93,6 +86,7 @@ export default function LoginPage() {
                   <FormItem>
                     <div className="flex items-center justify-between">
                       <FormLabel>Contraseña</FormLabel>
+                      {/*
                       <Link
                         href="#" 
                         className="text-sm text-primary hover:underline"
@@ -100,6 +94,7 @@ export default function LoginPage() {
                       >
                         ¿Olvidaste tu contraseña?
                       </Link>
+                      */}
                     </div>
                     <FormControl>
                       <Input type="password" placeholder="••••••••" {...field} />
@@ -114,9 +109,10 @@ export default function LoginPage() {
             </form>
           </Form>
           <div className="mt-6 text-center text-sm">
-            El registro es gestionado por administradores.
-            <br/>
-            Contacta a soporte si necesitas una cuenta.
+            ¿No tienes cuenta?{" "}
+            <Link href="/" className="underline text-primary"> 
+              Volver al inicio
+            </Link>
           </div>
         </CardContent>
       </Card>
