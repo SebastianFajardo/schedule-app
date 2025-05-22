@@ -15,7 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Dirección de correo inválida." }),
-  password: z.string().min(6, { message: "La contraseña debe tener al menos 6 caracteres." }),
+  password: z.string().min(1, { message: "La contraseña es requerida." }), // Simplified for demo
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -33,22 +33,22 @@ export default function LoginPage() {
   });
 
   const onSubmit = async (data: LoginFormValues) => {
-    await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-    
-    // Simplified mock login
-    if (data.email === "usuario@example.com" && data.password === "password") { 
+    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API call
+
+    // Simplified mock login - any email with @ and any password works
+    if (data.email.includes("@") && data.password) {
       toast({
         title: "Inicio de Sesión Exitoso",
         description: "¡Bienvenido/a de nuevo!",
       });
-      router.push("/"); // Redirect to landing page
+      router.push("/dashboard"); // Redirect to dashboard
     } else {
       toast({
         variant: "destructive",
         title: "Falló el Inicio de Sesión",
         description: "Correo o contraseña inválidos. Por favor, inténtalo de nuevo.",
       });
-      form.setError("email", { type: "manual", message: " " }); 
+      form.setError("email", { type: "manual", message: " " });
       form.setError("password", { type: "manual", message: "Credenciales inválidas" });
     }
   };
@@ -84,18 +84,7 @@ export default function LoginPage() {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <div className="flex items-center justify-between">
-                      <FormLabel>Contraseña</FormLabel>
-                      {/*
-                      <Link
-                        href="#" 
-                        className="text-sm text-primary hover:underline"
-                        prefetch={false}
-                      >
-                        ¿Olvidaste tu contraseña?
-                      </Link>
-                      */}
-                    </div>
+                    <FormLabel>Contraseña</FormLabel>
                     <FormControl>
                       <Input type="password" placeholder="••••••••" {...field} />
                     </FormControl>
@@ -110,8 +99,8 @@ export default function LoginPage() {
           </Form>
           <div className="mt-6 text-center text-sm">
             ¿No tienes cuenta?{" "}
-            <Link href="/" className="underline text-primary"> 
-              Volver al inicio
+            <Link href="/" className="underline text-primary">
+              Volver a la página de inicio
             </Link>
           </div>
         </CardContent>
