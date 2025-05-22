@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils"
 import { Button, type ButtonProps } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
-import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet" // SheetTitle importado
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet" 
 import { Skeleton } from "@/components/ui/skeleton"
 import {
   Tooltip,
@@ -29,7 +29,7 @@ const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
 const SIDEBAR_WIDTH = "16rem"
 const SIDEBAR_WIDTH_MOBILE = "18rem"
-const SIDEBAR_WIDTH_ICON = "3.5rem" // Ancho cuando está colapsado a iconos
+const SIDEBAR_WIDTH_ICON = "3.5rem" 
 const SIDEBAR_KEYBOARD_SHORTCUT = "b"
 
 type SidebarContext = {
@@ -56,14 +56,14 @@ function useSidebar() {
 const SidebarProvider = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div"> & {
-    defaultOpen?: boolean
+    defaultOpen?: boolean // This is now the primary desktop default
     open?: boolean
     onOpenChange?: (open: boolean) => void
   }
 >(
   (
     {
-      defaultOpen = true,
+      defaultOpen = true, // This will be the consistent initial value from AppLayout
       open: openProp,
       onOpenChange: setOpenProp,
       className,
@@ -73,87 +73,99 @@ const SidebarProvider = React.forwardRef<
     },
     ref
   ) => {
-    const isMobileHook = useIsMobile() // Determina si es móvil basado en el hook
-
+    const isMobileHook = useIsMobile()
     const [openMobile, setOpenMobile] = React.useState(false)
+    const [_open, _setOpen] = React.useState(defaultOpen); // Initialize with prop for SSR consistency
 
-    const [_open, _setOpen] = React.useState(() => {
-      if (typeof document !== 'undefined') {
+    React.useEffect(() => {
+      // Client-side adjustments
+      if (isMobileHook) {
+        _setOpen(false); // Force closed on mobile initially after mount
+        if (openProp !== undefined && onOpenChange) { // If controlled on mobile
+          onOpenChange(false);
+        }
+      } else {
+        // Desktop: check cookie after mount
         const cookieValue = document.cookie
           .split("; ")
           .find((row) => row.startsWith(`${SIDEBAR_COOKIE_NAME}=`))
           ?.split("=")[1];
-        return cookieValue ? cookieValue === "true" : defaultOpen;
-      }
-      return defaultOpen;
-    });
-    
-    React.useEffect(() => {
-      if (openProp === undefined) { 
-        const cookieValue = typeof document !== 'undefined' ? document.cookie
-          .split("; ")
-          .find((row) => row.startsWith(`${SIDEBAR_COOKIE_NAME}=`))
-          ?.split("=")[1] : undefined;
-        if (!cookieValue || (isMobileHook && defaultOpen === true)) { // If mobile, defaultOpen should effectively be false
-             _setOpen(isMobileHook ? false : defaultOpen);
+        
+        if (cookieValue !== undefined) {
+           const cookieOpenState = cookieValue === "true";
+            if (openProp === undefined) { // Only set if uncontrolled
+                 _setOpen(cookieOpenState);
+            } else if (onOpenChange && openProp !== cookieOpenState) { // If controlled and different from cookie
+                // Potentially notify parent, or let parent's `openProp` take precedence
+                // For now, we assume parent `openProp` is the source of truth if provided
+            }
         } else {
-            _setOpen(cookieValue === "true");
+            // No cookie, maintain defaultOpen (already set in useState) or controlled prop
+             if (openProp === undefined) {
+                _setOpen(defaultOpen);
+             }
         }
       }
-    }, [defaultOpen, openProp, isMobileHook]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isMobileHook, defaultOpen]); // Rerun if isMobileHook changes or defaultOpen (though defaultOpen should be stable)
+                                     // openProp and onOpenChange are intentionally omitted from deps if we want them to only influence the controlled aspect
 
 
-    const open = openProp ?? _open
+    const open = openProp ?? _open;
+
     const setOpen = React.useCallback(
       (value: boolean | ((value: boolean) => boolean)) => {
-        const openState = typeof value === "function" ? value(open) : value
+        const newOpenState = typeof value === "function" ? value(open) : value;
         if (setOpenProp) {
-          setOpenProp(openState)
+          setOpenProp(newOpenState);
         } else {
-          _setOpen(openState)
+          _setOpen(newOpenState);
         }
-        if (typeof document !== 'undefined' && !isMobileHook) { 
-          document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
+        if (!isMobileHook) { 
+          document.cookie = `${SIDEBAR_COOKIE_NAME}=${newOpenState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
         }
       },
-      [setOpenProp, open, _setOpen, isMobileHook]
-    )
+      [setOpenProp, open, isMobileHook, _setOpen] // Added _setOpen
+    );
+    
 
     const toggleSidebar = React.useCallback(() => {
-      return isMobileHook
-        ? setOpenMobile((current) => !current)
-        : setOpen((current) => !current)
-    }, [isMobileHook, setOpen, setOpenMobile])
+      if (isMobileHook) {
+        setOpenMobile((current) => !current);
+      } else {
+        setOpen((current) => !current);
+      }
+    }, [isMobileHook, setOpen, setOpenMobile]);
 
     React.useEffect(() => {
       const handleKeyDown = (event: KeyboardEvent) => {
         if (
           event.key === SIDEBAR_KEYBOARD_SHORTCUT &&
-          (event.metaKey || event.ctrlKey)
+          (event.metaKey || event.ctrlKey) && !isMobileHook // Only for desktop
         ) {
-          event.preventDefault()
-          toggleSidebar()
+          event.preventDefault();
+          toggleSidebar();
         }
-      }
+      };
 
-      window.addEventListener("keydown", handleKeyDown)
-      return () => window.removeEventListener("keydown", handleKeyDown)
-    }, [toggleSidebar])
+      window.addEventListener("keydown", handleKeyDown);
+      return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [toggleSidebar, isMobileHook]);
 
-    const state = open ? "expanded" : "collapsed"
+    const state = open ? "expanded" : "collapsed";
 
     const contextValue = React.useMemo<SidebarContext>(
       () => ({
         state,
         open,
         setOpen,
-        isMobile: isMobileHook, 
+        isMobile: !!isMobileHook, // Ensure boolean
         openMobile,
         setOpenMobile,
         toggleSidebar,
       }),
       [state, open, setOpen, isMobileHook, openMobile, setOpenMobile, toggleSidebar]
-    )
+    );
 
     return (
       <SidebarContext.Provider value={contextValue}>
@@ -167,7 +179,7 @@ const SidebarProvider = React.forwardRef<
               } as React.CSSProperties
             }
             className={cn(
-              "group/sidebar-wrapper flex min-h-screen", // Removed flex-col, parent div in layout will handle direction
+              "group/sidebar-wrapper flex min-h-screen",
               className
             )}
             ref={ref}
@@ -177,9 +189,9 @@ const SidebarProvider = React.forwardRef<
           </div>
         </TooltipProvider>
       </SidebarContext.Provider>
-    )
+    );
   }
-)
+);
 SidebarProvider.displayName = "SidebarProvider"
 
 const Sidebar = React.forwardRef<
@@ -207,7 +219,9 @@ const Sidebar = React.forwardRef<
       return (
         <aside 
           className={cn(
-            "flex h-full w-[--sidebar-width] flex-col bg-sidebar text-sidebar-foreground",
+            "flex h-screen flex-col bg-sidebar text-sidebar-foreground", // Added h-screen
+            "w-[--sidebar-width]", // Always use full width if not collapsible
+            variant === 'floating' || variant === 'inset' ? 'm-2 rounded-lg shadow-lg' : 'border-r border-sidebar-border',
             className
           )}
           ref={ref}
@@ -232,7 +246,8 @@ const Sidebar = React.forwardRef<
             }
             side={side}
           >
-            <SheetTitle className="sr-only">Menú Principal Móvil</SheetTitle> 
+            {/* Ensure SheetTitle is present for accessibility, can be sr-only */}
+            <SheetTitle className="sr-only">Menú de Navegación Principal</SheetTitle> 
             {children}
           </SheetContent>
         </Sheet>
@@ -243,12 +258,12 @@ const Sidebar = React.forwardRef<
       <aside 
         ref={ref}
         className={cn(
-          "group peer hidden md:flex flex-col text-sidebar-foreground bg-sidebar", 
+          "group peer hidden md:flex flex-col text-sidebar-foreground bg-sidebar h-screen", // Added h-screen
           "transition-all duration-200 ease-in-out", 
           'w-[--sidebar-width-icon]', 
           'data-[state=expanded]:w-[--sidebar-width]', 
           'data-[state=collapsed]:hover:w-[--sidebar-width]', 
-          variant === 'floating' || variant === 'inset' ? 'm-2 rounded-lg shadow-lg' : 'border-r border-sidebar-border',
+          variant === 'floating' || variant === 'inset' ? 'm-2 rounded-lg shadow-lg !h-[calc(100vh-1rem)]' : 'border-r border-sidebar-border', // Adjusted height for floating/inset
           className
         )}
         data-state={state} 
@@ -273,7 +288,7 @@ const SidebarTrigger = React.forwardRef<
   if (!isMobile) return null; 
 
   const Comp = asChild ? Slot : Button;
-  const defaultIcon = <Menu className="h-5 w-5" />; // Using Menu icon consistently
+  const defaultIcon = <Menu className="h-5 w-5" />; 
   const defaultSrText = "Alternar menú de navegación";
 
   return (
@@ -282,7 +297,7 @@ const SidebarTrigger = React.forwardRef<
       data-sidebar="trigger"
       variant="ghost"
       size="icon"
-      className={cn("shrink-0 h-9 w-9", className)} // Ensured size consistency
+      className={cn("shrink-0 h-9 w-9", className)} 
       {...props}
       onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
         propOnClick?.(event);
@@ -303,13 +318,13 @@ SidebarTrigger.displayName = "SidebarTrigger";
 
 const SidebarInset = React.forwardRef<
   HTMLElement, 
-  React.ComponentProps<"main"> // Changed to main, but can be div if preferred
+  React.ComponentProps<"main"> 
 >(({ className, ...props }, ref) => {
   return (
-    <main // Or div
+    <main 
       ref={ref}
       className={cn(
-        "relative flex-1 flex flex-col bg-background", // Removed overflow-y-auto here, will be on specific children if needed
+        "relative flex-1 flex flex-col bg-background", 
         "md:peer-data-[variant=inset]:m-2 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow-lg",
         className
       )}
@@ -415,7 +430,7 @@ const SidebarGroup = React.forwardRef<
     <div
       ref={ref}
       data-sidebar="group"
-      className={cn("relative flex w-full min-w-0 flex-col", // Removed p-2 base
+      className={cn("relative flex w-full min-w-0 flex-col", 
       "group-data-[state=expanded]:p-2",
       "group-data-[state=collapsed]:group-hover:p-2",
       "group-data-[state=collapsed]:not(group-hover):p-0 group-data-[state=collapsed]:not(group-hover):items-center",
@@ -580,16 +595,15 @@ const SidebarMenuButton = React.forwardRef<
         if (typeof child === 'string') {
             textChildrenArray.push(child);
         } else if (React.isValidElement(child) && child.type === React.Fragment) {
-            // If child is a Fragment, iterate over its children
             React.Children.forEach(child.props.children, fragmentChild => {
                 if (typeof fragmentChild === 'string') {
                     textChildrenArray.push(fragmentChild);
                 } else if (React.isValidElement(fragmentChild) && typeof fragmentChild.type === 'string') {
-                     textChildrenArray.push(fragmentChild); // e.g. <span>text</span>
+                     textChildrenArray.push(fragmentChild); 
                 }
             });
         } else if (React.isValidElement(child) && typeof child.type === 'string') {
-            textChildrenArray.push(child); // e.g. <span>text</span>
+            textChildrenArray.push(child); 
         }
     });
 

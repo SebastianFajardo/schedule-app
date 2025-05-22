@@ -13,12 +13,10 @@ import {
 } from "@/components/ui/sidebar";
 import AppSidebarContent from '@/components/layout/AppSidebarContent';
 import AppFooter from '@/components/layout/AppFooter';
-import { Stethoscope, UserCircle, LogOut } from 'lucide-react'; // Removed Menu, PanelLeftClose as they are handled in AppHeader
+import { Stethoscope, UserCircle, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from "@/lib/utils";
-// Removed useSidebar import here as it's not directly used for toggle in this specific way anymore for DesktopSidebarHeaderContent
 
 const mockUser = {
   name: "Usuario Ejemplo",
@@ -30,14 +28,12 @@ const mockUser = {
 const defaultOpenDesktop = true; 
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const isMobileHook = useIsMobile();
-
   return (
-    <SidebarProvider defaultOpen={isMobileHook ? false : defaultOpenDesktop}>
+    <SidebarProvider defaultOpen={defaultOpenDesktop}>
       <div className="flex flex-row min-h-screen bg-background"> {/* Main flex direction is ROW */}
         <Sidebar
           variant="sidebar"
-          collapsible={"icon"} // Always allow icon collapse for desktop logic
+          collapsible={"icon"} 
           className="border-r border-sidebar-border shadow-md" 
         >
           <SidebarHeader className={cn(
@@ -82,6 +78,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <Link href="/login" className="w-full">
               <Button variant="ghost" size="sm" className={cn(
                 "w-full justify-start mt-1 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                "group-data-[state=expanded]:flex",
+                "group-data-[state=collapsed]:group-hover:flex",
                 "group-data-[state=collapsed]:not(group-hover):justify-center"
               )}>
                 <LogOut className="h-4 w-4 shrink-0" />
@@ -96,7 +94,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </SidebarFooter>
         </Sidebar>
 
-        <SidebarInset className="flex-1 flex flex-col overflow-y-auto">
+        <SidebarInset className="flex-1 flex flex-col overflow-y-auto"> {/* Ensures SidebarInset grows and handles overflow */}
           <AppHeader />
           <main className="flex-1 p-4 sm:p-6 lg:p-8">
             {children}
