@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -11,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"; // Added SheetTitle
 import AppSidebarContent from "./AppSidebarContent"; // Import sidebar content for mobile sheet
 import { usePathname } from "next/navigation";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -44,6 +45,7 @@ export default function AppHeader() {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="flex flex-col p-0 w-72 bg-sidebar text-sidebar-foreground">
+              <SheetTitle className="sr-only">Main Navigation Menu</SheetTitle>
               {/* Sidebar content for mobile */}
               <div className="flex items-center gap-2 border-b border-sidebar-border p-4">
                 <Stethoscope className="h-7 w-7 text-sidebar-primary" />
