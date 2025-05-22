@@ -12,10 +12,10 @@ import { PanelLeft } from "lucide-react"
 
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { Button, type ButtonProps } from "@/components/ui/button" // Import ButtonProps
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
-import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet" // Imported SheetTitle
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
   Tooltip,
@@ -266,29 +266,39 @@ const Sidebar = React.forwardRef<
 Sidebar.displayName = "Sidebar"
 
 const SidebarTrigger = React.forwardRef<
-  React.ElementRef<typeof Button>,
-  React.ComponentProps<typeof Button>
->(({ className, onClick, ...props }, ref) => {
-  const { toggleSidebar } = useSidebar()
+  HTMLButtonElement, // The ref is for the underlying HTMLButtonElement or the slotted child's element
+  ButtonProps // Use ButtonProps which includes asChild, children, onClick etc.
+>(({ className, onClick: propOnClick, children, asChild = false, ...props }, ref) => {
+  const { toggleSidebar } = useSidebar();
+
+  const defaultContent = (
+    <>
+      <PanelLeft />
+      <span className="sr-only">Alternar menú de navegación</span>
+    </>
+  );
 
   return (
-    <Button
+    <Button // This is the Button component from src/components/ui/button.tsx
       ref={ref}
       data-sidebar="trigger"
-      variant="ghost"
-      size="icon"
-      className={cn("h-7 w-7", className)}
+      variant="ghost" // Default variant for SidebarTrigger
+      size="icon"     // Default size for SidebarTrigger
+      className={cn("h-7 w-7", className)} // Default className merged with user-provided className
+      {...props} // Spread other props (e.g., variant/size from child if asChild, other HTML attrs)
+      asChild={asChild} // Pass asChild to the ui/Button component
       onClick={(event) => {
-        onClick?.(event)
-        toggleSidebar()
+        // Call the onClick prop passed to SidebarTrigger (could be from a child if asChild=true, or directly)
+        propOnClick?.(event);
+        // Always call toggleSidebar
+        toggleSidebar();
       }}
-      {...props}
     >
-      <PanelLeft />
-      <span className="sr-only">Toggle Sidebar</span>
+      {/* Conditionally render children based on asChild prop */}
+      {asChild ? children : defaultContent}
     </Button>
-  )
-})
+  );
+});
 SidebarTrigger.displayName = "SidebarTrigger"
 
 const SidebarRail = React.forwardRef<
@@ -555,6 +565,7 @@ const SidebarMenuButton = React.forwardRef<
       size = "default",
       tooltip,
       className,
+      children, // Ensure children is destructured here
       ...props
     },
     ref
@@ -570,7 +581,9 @@ const SidebarMenuButton = React.forwardRef<
         data-active={isActive}
         className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
         {...props}
-      />
+      >
+        {children}
+      </Comp>
     )
 
     if (!tooltip) {
@@ -604,7 +617,7 @@ const SidebarMenuAction = React.forwardRef<
     asChild?: boolean
     showOnHover?: boolean
   }
->(({ className, asChild = false, showOnHover = false, ...props }, ref) => {
+>(({ className, asChild = false, showOnHover = false, children, ...props }, ref) => { // Ensure children is destructured
   const Comp = asChild ? Slot : "button"
 
   return (
@@ -624,7 +637,9 @@ const SidebarMenuAction = React.forwardRef<
         className
       )}
       {...props}
-    />
+    >
+      {children}
+    </Comp>
   )
 })
 SidebarMenuAction.displayName = "SidebarMenuAction"
@@ -712,14 +727,14 @@ const SidebarMenuSubItem = React.forwardRef<
 SidebarMenuSubItem.displayName = "SidebarMenuSubItem"
 
 const SidebarMenuSubButton = React.forwardRef<
-  HTMLAnchorElement,
-  React.ComponentProps<"a"> & {
+  HTMLAnchorElement, // Changed to HTMLAnchorElement as it's often used with <a>
+  React.ComponentProps<"a"> & { // Changed to React.ComponentProps<"a">
     asChild?: boolean
     size?: "sm" | "md"
     isActive?: boolean
   }
->(({ asChild = false, size = "md", isActive, className, ...props }, ref) => {
-  const Comp = asChild ? Slot : "a"
+>(({ asChild = false, size = "md", isActive, className, children, ...props }, ref) => { // Ensure children is destructured
+  const Comp = asChild ? Slot : "a" // Changed default to "a"
 
   return (
     <Comp
@@ -736,7 +751,9 @@ const SidebarMenuSubButton = React.forwardRef<
         className
       )}
       {...props}
-    />
+    >
+      {children}
+    </Comp>
   )
 })
 SidebarMenuSubButton.displayName = "SidebarMenuSubButton"
