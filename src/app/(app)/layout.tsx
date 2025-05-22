@@ -25,7 +25,7 @@ const mockUser = {
 };
 
 // Sidebar inicia expandido en escritorio por defecto
-const defaultOpenDesktop = true; 
+const defaultOpenDesktop = true;
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -33,22 +33,25 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <div className="flex flex-row min-h-screen bg-background"> {/* Main flex direction is ROW */}
         <Sidebar
           variant="sidebar"
-          collapsible={"icon"} 
-          className="border-r border-sidebar-border shadow-md" 
+          collapsible={"icon"}
+          className="border-r border-sidebar-border shadow-md"
         >
           <SidebarHeader className={cn(
             "border-b border-sidebar-border h-16 flex items-center px-2",
             "group-data-[state=expanded]:justify-start",
             "group-data-[state=collapsed]:group-hover:justify-start",
-            "group-data-[state=collapsed]:not(group-hover):justify-center" 
+            "group-data-[state=collapsed]:not(group-hover):justify-center"
           )}>
-            <Link href="/dashboard" className="flex items-center gap-2">
+            <Link href="/dashboard" className={cn(
+              "flex items-center gap-2",
+              // No need for justify classes here, parent SidebarHeader handles it
+            )}>
               <Stethoscope className="h-7 w-7 text-sidebar-primary shrink-0" />
               <span className={cn(
                 "text-xl font-semibold text-sidebar-foreground truncate",
-                "group-data-[state=expanded]:inline",
-                "group-data-[state=collapsed]:group-hover:inline",
-                "group-data-[state=collapsed]:not(group-hover):hidden"
+                "group-data-[state=expanded]:inline", // Show if expanded
+                "group-data-[state=collapsed]:group-hover:inline", // Show if collapsed AND hovered
+                "group-data-[state=collapsed]:not(group-hover):hidden" // Hide if collapsed AND NOT hovered
               )}>
                 MediSchedule
               </span>
@@ -60,8 +63,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <SidebarFooter className="border-t border-sidebar-border p-2">
             <div className={cn(
               "flex items-center gap-2 p-2 rounded-md bg-sidebar-accent/30",
-              "group-data-[state=expanded]:flex",
-              "group-data-[state=collapsed]:group-hover:flex",
+              "group-data-[state=expanded]:justify-start",
+              "group-data-[state=collapsed]:group-hover:justify-start",
               "group-data-[state=collapsed]:not(group-hover):justify-center"
             )}>
               <UserCircle className="h-8 w-8 text-sidebar-foreground shrink-0" />
@@ -75,11 +78,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <p className="text-xs text-sidebar-foreground/80">{mockUser.role}</p>
               </div>
             </div>
-            <Link href="/login" className="w-full">
+            <Link href="/login" className="w-full block">
               <Button variant="ghost" size="sm" className={cn(
-                "w-full justify-start mt-1 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                "group-data-[state=expanded]:flex",
-                "group-data-[state=collapsed]:group-hover:flex",
+                "w-full mt-1 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                "group-data-[state=expanded]:justify-start",
+                "group-data-[state=collapsed]:group-hover:justify-start",
                 "group-data-[state=collapsed]:not(group-hover):justify-center"
               )}>
                 <LogOut className="h-4 w-4 shrink-0" />
