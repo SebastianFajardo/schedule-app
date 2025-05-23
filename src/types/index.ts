@@ -22,7 +22,7 @@ export interface Patient {
 
 export interface Appointment {
   id: string;
-  patientId: string; // Changed from patientName to patientId
+  patientId: string; 
   professionalId: string; 
   specialtyId?: string;  
   dateTime: Date;
@@ -30,18 +30,22 @@ export interface Appointment {
   location?: string; 
   notes?: string;
   videoCallLink?: string;
-  // Derived or populated fields (optional, for display purposes, not direct storage)
   patientName?: string;
   doctorName?: string; 
   specialtyName?: string;
 }
 
+export interface ProfessionalAvailabilitySlot {
+  date: string; // YYYY-MM-DD
+  slots: string[]; // HH:mm
+}
 
 export interface Professional {
   id: string;
   name: string;
   document: string;
-  specialtyIds: string[]; // IDs of specialties the professional has
+  specialtyIds: string[]; 
+  availability: ProfessionalAvailabilitySlot[];
 }
 
 export interface Specialty {

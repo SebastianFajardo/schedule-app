@@ -8,10 +8,7 @@ export const BookAppointmentFormSchema = z.object({
   appointmentType: z.enum(["presencial", "virtual"], {
     required_error: "Debe seleccionar un tipo de cita.",
   }),
-  appointmentDate: z.date({
-    required_error: "La fecha de la cita es requerida.",
-  }),
-  appointmentTime: z.string().min(1, { message: "La hora de la cita es requerida." }),
+  selectedDateTimeSlot: z.string({ required_error: "Debe seleccionar una fecha y hora para la cita."}).min(1, { message: "Debe seleccionar una fecha y hora para la cita."}),
   location: z.string().optional(),
   videoCallLink: z.string().url({ message: "Debe ingresar una URL válida para la videollamada." }).optional(),
   notes: z.string().optional(),

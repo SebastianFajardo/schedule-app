@@ -1,6 +1,6 @@
 
 import type { Appointment, Patient, Professional, Specialty } from "@/types";
-import { addDays, subDays } from "date-fns";
+import { addDays, subDays, format } from "date-fns";
 
 export const mockPatients: Patient[] = [
   { id: "pat1", name: "Carlos Ruiz", document: "12345678A", email: "carlos.ruiz@example.com", phone: "555-0101" },
@@ -93,12 +93,56 @@ export const mockAppointments: Appointment[] = [
   }
 ];
 
+const today = new Date();
+const generateAvailability = (daysAhead: number, slots: string[]) => {
+  const availableDates = [];
+  for (let i = 0; i < daysAhead; i++) {
+    if (Math.random() > 0.3) { // Simulate some days not being available
+      availableDates.push({
+        date: format(addDays(today, i + 1), "yyyy-MM-dd"), // Start from tomorrow
+        slots: slots.filter(() => Math.random() > 0.2) // Simulate some slots not being available
+      });
+    }
+  }
+  return availableDates;
+};
+
 export const mockProfessionals: Professional[] = [
-  { id: "prof1", name: "Dra. Ana Pérez", document: "11223344A", specialtyIds: ["spec1"] },
-  { id: "prof2", name: "Dr. Juan Torres", document: "55667788B", specialtyIds: ["spec2", "spec4"] },
-  { id: "prof3", name: "Dra. Laura Vargas", document: "99001122C", specialtyIds: ["spec3"] },
-  { id: "prof4", name: "Dr. Genérico", document: "12345678G", specialtyIds: ["spec4"] },
-  { id: "prof5", name: "Dr. Carlos Solis", document: "87654321S", specialtyIds: ["spec2"] },
+  { 
+    id: "prof1", 
+    name: "Dra. Ana Pérez", 
+    document: "11223344A", 
+    specialtyIds: ["spec1"],
+    availability: generateAvailability(30, ["09:00", "09:30", "10:00", "10:30", "11:00", "14:00", "14:30", "15:00"])
+  },
+  { 
+    id: "prof2", 
+    name: "Dr. Juan Torres", 
+    document: "55667788B", 
+    specialtyIds: ["spec2", "spec4"],
+    availability: generateAvailability(30, ["08:00", "08:45", "09:30", "10:15", "11:00", "16:00", "16:45"]) 
+  },
+  { 
+    id: "prof3", 
+    name: "Dra. Laura Vargas", 
+    document: "99001122C", 
+    specialtyIds: ["spec3"],
+    availability: generateAvailability(30, ["10:00", "11:00", "12:00", "13:00", "15:30", "16:30"])
+  },
+  { 
+    id: "prof4", 
+    name: "Dr. Genérico", 
+    document: "12345678G", 
+    specialtyIds: ["spec4"],
+    availability: generateAvailability(30, ["09:00", "10:00", "11:00", "14:00", "15:00"])
+  },
+  { 
+    id: "prof5", 
+    name: "Dr. Carlos Solis", 
+    document: "87654321S", 
+    specialtyIds: ["spec2"],
+    availability: generateAvailability(30, ["13:00", "13:30", "14:00", "17:00", "17:30"])
+  },
 ];
 
 export const mockSpecialties: Specialty[] = [
