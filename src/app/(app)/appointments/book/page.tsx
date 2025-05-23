@@ -47,7 +47,6 @@ import { es } from 'date-fns/locale';
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 
-// Mock data mapping for Combobox
 const patientOptions: ComboboxOption[] = mockPatients.map(patient => ({
   value: patient.id,
   label: patient.name,
@@ -97,7 +96,6 @@ export default function BookAppointmentPage() {
     [currentProfessionalId]
   );
 
-  // Filter specialties based on selected professional FOR THE MAIN FORM
   const availableSpecialtyOptionsForForm = React.useMemo(() => {
     if (!currentProfessionalId) {
       return allSpecialtyOptions;
@@ -107,7 +105,6 @@ export default function BookAppointmentPage() {
     return allSpecialtyOptions.filter(spec => professional.specialtyIds.includes(spec.value));
   }, [currentProfessionalId]);
 
-  // Filter specialties based on selected professional FOR THE DIALOG (uses main form's professionalId)
   const availableSpecialtyOptionsForDialog = React.useMemo(() => {
     if (!currentProfessionalId) { 
       return allSpecialtyOptions;
@@ -118,7 +115,6 @@ export default function BookAppointmentPage() {
   }, [currentProfessionalId]);
 
 
-  // Reset specialty if selected professional (from main form) changes and current specialty is not available
   React.useEffect(() => {
     if (currentProfessionalId && currentSpecialtyId) {
         const professional = mockProfessionals.find(p => p.id === currentProfessionalId);
@@ -126,20 +122,15 @@ export default function BookAppointmentPage() {
             form.setValue("specialtyId", undefined, { shouldValidate: true }); 
         }
     }
-    // If professional is cleared, specialty should also be cleared from the main form.
     if (!currentProfessionalId && currentSpecialtyId) {
         form.setValue("specialtyId", undefined, { shouldValidate: true });
     }
-  }, [currentProfessionalId, currentSpecialtyId, form]);
-
-  // Reset date/time if professional or specialty (from main form) changes
-  React.useEffect(() => {
     setSelectedCalendarDate(undefined);
     setTimeSlotsForSelectedDate([]);
     form.setValue("selectedDateTimeSlot", "", { shouldValidate: false }); 
   }, [currentProfessionalId, currentSpecialtyId, form]);
 
-
+  
   const handleFormProfessionalChange = (profId: string | undefined) => {
     form.setValue("professionalId", profId, { shouldValidate: true });
     const professional = mockProfessionals.find(p => p.id === profId);
@@ -148,7 +139,6 @@ export default function BookAppointmentPage() {
     } else if (!profId) { 
         form.setValue("specialtyId", undefined, { shouldValidate: true });
     }
-    // When professional changes in the main form, clear calendar/time selection
     setSelectedCalendarDate(undefined);
     setTimeSlotsForSelectedDate([]);
     form.setValue("selectedDateTimeSlot", "", { shouldValidate: false });
@@ -156,7 +146,6 @@ export default function BookAppointmentPage() {
 
   const handleFormSpecialtyChange = (specId: string | undefined) => {
     form.setValue("specialtyId", specId, { shouldValidate: true });
-    // When specialty changes in the main form, clear calendar/time selection
     setSelectedCalendarDate(undefined);
     setTimeSlotsForSelectedDate([]);
     form.setValue("selectedDateTimeSlot", "", { shouldValidate: false });
@@ -197,22 +186,20 @@ export default function BookAppointmentPage() {
   };
 
   const handleDialogProfessionalChange = (profId: string | undefined) => {
-    form.setValue("professionalId", profId, { shouldValidate: true }); // Update main form
+    form.setValue("professionalId", profId, { shouldValidate: true }); 
     const professional = mockProfessionals.find(p => p.id === profId);
     if (profId && currentSpecialtyId && professional && !professional.specialtyIds.includes(currentSpecialtyId)) {
         form.setValue("specialtyId", undefined, { shouldValidate: true });
     } else if (!profId) { 
         form.setValue("specialtyId", undefined, { shouldValidate: true });
     }
-    // When professional changes inside dialog, clear calendar/time selection in dialog
     setSelectedCalendarDate(undefined);
     setTimeSlotsForSelectedDate([]);
     form.setValue("selectedDateTimeSlot", "", { shouldValidate: false });
   };
 
   const handleDialogSpecialtyChange = (specId: string | undefined) => {
-    form.setValue("specialtyId", specId, { shouldValidate: true }); // Update main form
-    // When specialty changes inside dialog, clear calendar/time selection in dialog
+    form.setValue("specialtyId", specId, { shouldValidate: true }); 
     setSelectedCalendarDate(undefined);
     setTimeSlotsForSelectedDate([]);
     form.setValue("selectedDateTimeSlot", "", { shouldValidate: false });
@@ -280,7 +267,7 @@ export default function BookAppointmentPage() {
       ),
       action: <CheckCircle className="text-green-500" />,
     });
-    // router.push("/appointments"); // Or a confirmation page
+    // router.push("/appointments"); 
   }
 
   return (
@@ -380,9 +367,9 @@ export default function BookAppointmentPage() {
                           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="max-w-3xl h-[90vh] flex flex-col p-0 overflow-hidden">
-                        <DialogHeader className="p-6 sm:p-0 pb-0 sm:pb-2 sticky top-0 bg-background z-10 border-b flex-shrink-0">
-                          <div className="px-6 sm:px-0 pt-6 sm:pt-0 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                      <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col p-0 overflow-y-auto">
+                        <DialogHeader className="p-6 pb-0 sm:pb-2 border-b">
+                          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                             <DialogTitle>Seleccionar Profesional, Especialidad, Fecha y Hora</DialogTitle>
                             <Button
                               type="button"
@@ -396,12 +383,12 @@ export default function BookAppointmentPage() {
                               Buscar Fecha Más Cercana
                             </Button>
                           </div>
-                          <DialogDescription className="pt-1 px-6 sm:px-0">
+                          <DialogDescription className="pt-1">
                             Puede ajustar el profesional o especialidad para ver diferentes disponibilidades. Luego elija un día y una hora.
                           </DialogDescription>
                         </DialogHeader>
                         
-                        <div className="flex-1 overflow-y-auto min-h-0 px-6 pt-4 pb-2 sm:px-0 sm:pt-2"> 
+                        <div className="flex-1 min-h-0 px-6 pt-4 pb-2"> 
                             <div className="grid sm:grid-cols-2 gap-4 mb-4">
                                 <FormItem className="flex flex-col">
                                     <FormLabel className="flex items-center gap-1"><Users className="h-4 w-4 text-muted-foreground"/> Profesional</FormLabel>
@@ -429,14 +416,14 @@ export default function BookAppointmentPage() {
                             </div>
                         
                             {!currentProfessionalId && ( 
-                                <div className="flex flex-col items-center justify-center flex-1 text-muted-foreground">
+                                <div className="flex flex-col items-center justify-center flex-1 text-muted-foreground py-10">
                                     <Users className="h-12 w-12 mb-2"/>
                                     <p className="text-center">Por favor, seleccione un profesional para ver la disponibilidad.</p>
                                 </div>
                             )}
 
                             {currentProfessionalId && ( 
-                              <div className="flex flex-col md:flex-row gap-6"> {/* Removed flex-grow min-h-0 from here */}
+                              <div className="flex flex-col md:flex-row gap-6"> 
                                 <div className="flex justify-center md:items-start md:w-1/2">
                                     <Calendar
                                     mode="single"
@@ -445,15 +432,15 @@ export default function BookAppointmentPage() {
                                     disabled={isDateUnavailable}
                                     initialFocus
                                     locale={es}
-                                    className="rounded-md border self-start w-full" // Calendar is w-full
+                                    className="rounded-md border self-start w-full" 
                                     />
                                 </div>
-                                <div className="flex flex-col flex-1 min-h-0 md:w-1/2 md:flex-none"> {/* This container will grow and allow scroll */}
+                                <div className="flex flex-col flex-1 min-h-0 md:w-1/2"> 
                                   <h3 className="text-lg font-medium mb-2 text-center md:text-left flex-shrink-0">
                                     {selectedCalendarDate ? `Horas para ${format(selectedCalendarDate, "PPP", { locale: es })}` : "Seleccione una fecha"}
                                   </h3>
                                   {selectedCalendarDate && timeSlotsForSelectedDate.length > 0 && (
-                                    <ScrollArea className="flex-1 border rounded-md p-2"> {/* ScrollArea uses flex-1 */}
+                                    <ScrollArea className="flex-1 border rounded-md p-2"> 
                                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                                         {timeSlotsForSelectedDate.map((time) => (
                                           <Button
@@ -478,7 +465,7 @@ export default function BookAppointmentPage() {
                               </div>
                             )}
                         </div>
-                        <DialogFooter className="pt-4 border-t px-6 sm:px-0 pb-6 sm:pb-2 sticky bottom-0 bg-background z-10 flex-shrink-0">
+                        <DialogFooter className="pt-4 border-t px-6 pb-6">
                             <DialogClose asChild>
                                 <Button variant="outline" type="button">Cancelar</Button>
                             </DialogClose>
