@@ -117,7 +117,7 @@ export default function BookAppointmentPage() {
     if (currentProfessionalId && currentSpecialtyId) {
         const professional = mockProfessionals.find(p => p.id === currentProfessionalId);
         if (professional && !professional.specialtyIds.includes(currentSpecialtyId)) {
-            form.setValue("specialtyId", undefined, { shouldValidate: false }); // No need to validate here
+            form.setValue("specialtyId", undefined, { shouldValidate: false }); 
             setSelectedCalendarDate(undefined);
             setTimeSlotsForSelectedDate([]);
             form.setValue("selectedDateTimeSlot", "");
@@ -129,13 +129,19 @@ export default function BookAppointmentPage() {
   React.useEffect(() => {
     setSelectedCalendarDate(undefined);
     setTimeSlotsForSelectedDate([]);
-    form.setValue("selectedDateTimeSlot", "", { shouldValidate: false }); // No need to validate here
+    form.setValue("selectedDateTimeSlot", "", { shouldValidate: false }); 
   }, [currentProfessionalId, currentSpecialtyId, form]);
 
 
   const handleProfessionalChange = (profId: string | undefined) => {
     form.setValue("professionalId", profId, { shouldValidate: true });
-    form.setValue("specialtyId", undefined); 
+    // Reset specialty when professional changes, but only if new professional doesn't have current specialty
+    const professional = mockProfessionals.find(p => p.id === profId);
+    if (professional && currentSpecialtyId && !professional.specialtyIds.includes(currentSpecialtyId)) {
+        form.setValue("specialtyId", undefined);
+    } else if (!profId) { // if professional is cleared, clear specialty too
+        form.setValue("specialtyId", undefined);
+    }
     setSelectedCalendarDate(undefined);
     setTimeSlotsForSelectedDate([]);
     form.setValue("selectedDateTimeSlot", "");
@@ -167,7 +173,7 @@ export default function BookAppointmentPage() {
     if (selectedCalendarDate) {
       const combined = format(selectedCalendarDate, "yyyy-MM-dd") + "T" + time;
       form.setValue("selectedDateTimeSlot", combined, { shouldValidate: true });
-      setIsDateTimePickerOpen(false);
+      setIsDateTimePickerOpen(false); // Close dialog on time selection
     }
   };
 
@@ -183,7 +189,7 @@ export default function BookAppointmentPage() {
 
   const handleRemoveProfessionalFilter = () => {
     form.setValue("professionalId", undefined, {shouldValidate: true});
-    form.setValue("specialtyId", undefined, {shouldValidate: true});
+    form.setValue("specialtyId", undefined, {shouldValidate: true}); // Also clear specialty
     form.setValue("selectedDateTimeSlot", "", {shouldValidate: true});
     setSelectedCalendarDate(undefined);
     setTimeSlotsForSelectedDate([]);
@@ -198,7 +204,7 @@ export default function BookAppointmentPage() {
 
 
   async function onSubmit(data: BookAppointmentFormValues) {
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
 
     const patientName = mockPatients.find(p => p.id === data.patientId)?.name || "N/A";
     const professionalName = mockProfessionals.find(p => p.id === data.professionalId)?.name || "N/A";
@@ -265,6 +271,8 @@ export default function BookAppointmentPage() {
                   </FormItem>
                 )}
               />
+              
+              {/* The FormField for professionalId and specialtyId are now INSIDE the Dialog */}
               
               <FormField
                 control={form.control}
@@ -362,7 +370,7 @@ export default function BookAppointmentPage() {
 
                         {currentProfessionalId && (
                           <div className="grid md:grid-cols-2 gap-6 flex-1 min-h-0 px-6 sm:px-0 pb-6 sm:pb-0">
-                            <div className="flex justify-center">
+                            <div className="flex justify-center md:items-start">
                                 <Calendar
                                 mode="single"
                                 selected={selectedCalendarDate}
@@ -370,7 +378,7 @@ export default function BookAppointmentPage() {
                                 disabled={isDateUnavailable}
                                 initialFocus
                                 locale={es}
-                                className="rounded-md border self-start"
+                                className="rounded-md border self-start w-full sm:w-auto" // Make calendar take full width on small, auto on larger
                                 />
                             </div>
                             <div className="flex flex-col min-h-0">
@@ -395,7 +403,7 @@ export default function BookAppointmentPage() {
                               {selectedCalendarDate && timeSlotsForSelectedDate.length === 0 && (
                                 <p className="text-center text-muted-foreground mt-4">No hay horas disponibles para este día.</p>
                               )}
-                              {!selectedCalendarDate && (
+                              {!selectedCalendarDate && currentProfessionalId && (
                                  <p className="text-center text-muted-foreground mt-4">Haga clic en un día del calendario para ver las horas.</p>
                               )}
                             </div>
@@ -409,6 +417,11 @@ export default function BookAppointmentPage() {
                       </DialogContent>
                     </Dialog>
                     <FormMessage />
+                    {!currentProfessionalId && (
+                        <FormDescription>
+                            Para ver la disponibilidad, primero seleccione un profesional y luego haga clic en "Seleccione fecha y hora...".
+                        </FormDescription>
+                    )}
                   </FormItem>
                 )}
               />
@@ -516,3 +529,4 @@ export default function BookAppointmentPage() {
     </div>
   );
 }
+
