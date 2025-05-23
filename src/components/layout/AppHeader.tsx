@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
-import { SheetTitle } from "@/components/ui/sheet";
+import { SheetTitle } from "@/components/ui/sheet"; // Keep for mobile sheet
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 
@@ -47,7 +47,7 @@ export default function AppHeader() {
   const isMobileHook = useIsMobile();
 
   return (
-    <header className="sticky top-0 z-30 flex h-24 items-center justify-between gap-4 border-b bg-card px-4 sm:px-6 shadow-sm"> {/* Altura aumentada a h-24 */}
+    <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-card px-4 sm:px-6 shadow-sm"> {/* Reverted height to h-16 */}
       <div className="flex items-center gap-2">
         {/* Botón de control del Sidebar para escritorio */}
         <DesktopSidebarToggleButton />
@@ -55,22 +55,22 @@ export default function AppHeader() {
         {/* Botón de trigger del Sidebar para móvil */}
         {isMobileHook && (
           <SidebarTrigger asChild>
-            <Button variant="ghost" size="icon" className="shrink-0 h-9 w-9"> {/* Mantenemos tamaño de botón móvil */}
+            <Button variant="ghost" size="icon" className="shrink-0 h-9 w-9">
               <Menu className="h-5 w-5" />
               <span className="sr-only">Alternar menú de navegación</span>
             </Button>
           </SidebarTrigger>
         )}
-         <Link href="/" className="flex items-center gap-1 sm:gap-2">
-           <Stethoscope className="h-8 w-8 sm:h-9 sm:w-9 text-primary" /> {/* Icono ligeramente más grande */}
-           <span className="text-2xl sm:text-3xl font-semibold text-primary hidden sm:inline">MediSchedule</span> {/* Texto ligeramente más grande */}
+         <Link href="/" className="flex items-center gap-2"> {/* Reverted gap-1 sm:gap-2 to gap-2 for consistency */}
+           <Stethoscope className="h-6 w-6 text-primary" /> {/* Reverted icon size */}
+           <span className="text-xl font-semibold text-primary hidden sm:inline">MediSchedule</span> {/* Reverted text size */}
          </Link>
       </div>
 
       {mockUser ? (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="rounded-full h-9 w-9 p-0"> {/* Mantenemos tamaño de botón de usuario */}
+            <Button variant="ghost" className="rounded-full h-9 w-9 p-0">
               <User className="h-5 w-5" />
               <span className="sr-only">Alternar menú de usuario</span>
             </Button>
