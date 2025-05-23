@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
-import { SheetTitle } from "@/components/ui/sheet"; // Keep for accessibility if mobile sidebar uses it
+import { SheetTitle } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 
@@ -26,7 +26,7 @@ const mockUser = {
 const DesktopSidebarToggleButton = () => {
   const { toggleSidebar, state: sidebarPinnedState, isMobile: isSidebarContextMobile } = useSidebar();
 
-  if (isSidebarContextMobile) return null;
+  if (isSidebarContextMobile) return null; // No renderizar en móvil
 
   return (
     <Button
@@ -47,7 +47,7 @@ export default function AppHeader() {
   const isMobileHook = useIsMobile();
 
   return (
-    <header className="sticky top-0 z-30 flex h-20 items-center justify-between gap-4 border-b bg-card px-4 sm:px-6 shadow-sm">
+    <header className="sticky top-0 z-30 flex h-24 items-center justify-between gap-4 border-b bg-card px-4 sm:px-6 shadow-sm"> {/* Altura aumentada a h-24 */}
       <div className="flex items-center gap-2">
         {/* Botón de control del Sidebar para escritorio */}
         <DesktopSidebarToggleButton />
@@ -55,22 +55,22 @@ export default function AppHeader() {
         {/* Botón de trigger del Sidebar para móvil */}
         {isMobileHook && (
           <SidebarTrigger asChild>
-            <Button variant="ghost" size="icon" className="shrink-0 h-9 w-9">
+            <Button variant="ghost" size="icon" className="shrink-0 h-9 w-9"> {/* Mantenemos tamaño de botón móvil */}
               <Menu className="h-5 w-5" />
               <span className="sr-only">Alternar menú de navegación</span>
             </Button>
           </SidebarTrigger>
         )}
          <Link href="/" className="flex items-center gap-1 sm:gap-2">
-           <Stethoscope className="h-7 w-7 sm:h-8 sm:w-8 text-primary" /> {/* Increased icon size slightly */}
-           <span className="text-xl sm:text-2xl font-semibold text-primary hidden sm:inline">MediSchedule</span> {/* Increased text size slightly */}
+           <Stethoscope className="h-8 w-8 sm:h-9 sm:w-9 text-primary" /> {/* Icono ligeramente más grande */}
+           <span className="text-2xl sm:text-3xl font-semibold text-primary hidden sm:inline">MediSchedule</span> {/* Texto ligeramente más grande */}
          </Link>
       </div>
 
       {mockUser ? (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="rounded-full h-9 w-9 p-0"> {/* Keep user icon button size consistent */}
+            <Button variant="ghost" className="rounded-full h-9 w-9 p-0"> {/* Mantenemos tamaño de botón de usuario */}
               <User className="h-5 w-5" />
               <span className="sr-only">Alternar menú de usuario</span>
             </Button>
