@@ -10,11 +10,11 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarInset,
-  useSidebar,
+  useSidebar, // Import useSidebar
 } from "@/components/ui/sidebar";
 import AppSidebarContent from '@/components/layout/AppSidebarContent';
 import AppFooter from '@/components/layout/AppFooter';
-import { Stethoscope, UserCircle, LogOut } from 'lucide-react';
+import { Stethoscope, UserCircle, LogOut, Menu, PanelLeftClose } from 'lucide-react'; // Added Menu, PanelLeftClose
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { cn } from "@/lib/utils";
@@ -25,7 +25,49 @@ const mockUser = {
   role: "Personal",
 };
 
-const defaultOpenDesktop = true; // Sidebar inicia expandido en escritorio por defecto
+const defaultOpenDesktop = true;
+
+// Small helper component to access sidebar context for the button
+const DesktopSidebarHeaderContent = () => {
+  const { toggleSidebar, state: sidebarPinnedState, isMobile } = useSidebar();
+
+  if (isMobile) {
+    return (
+      <Link href="/dashboard" className="flex items-center gap-2">
+        <Stethoscope className="h-7 w-7 text-sidebar-primary shrink-0" />
+        <span className="text-xl font-semibold text-sidebar-foreground truncate">
+          MediSchedule
+        </span>
+      </Link>
+    );
+  }
+
+  return (
+    <div className={cn(
+      "flex items-center w-full",
+      "group-data-[state=expanded]:justify-between",
+      "group-data-[state=collapsed]:group-hover:justify-between",
+      "group-data-[state=collapsed]:not(group-hover):justify-center"
+    )}>
+      <Link href="/dashboard" className={cn(
+        "flex items-center gap-2",
+        "group-data-[state=collapsed]:not(group-hover):w-full group-data-[state=collapsed]:not(group-hover):justify-center" // Center logo when collapsed and no hover
+      )}>
+        <Stethoscope className="h-7 w-7 text-sidebar-primary shrink-0" />
+        <span className={cn(
+          "text-xl font-semibold text-sidebar-foreground truncate",
+          "group-data-[state=collapsed]:not(group-hover):hidden",
+          "group-data-[state=expanded]:inline",
+          "group-data-[state=collapsed]:group-hover:inline"
+        )}>
+          MediSchedule
+        </span>
+      </Link>
+      {/* This button is removed from here as per new request, will be in AppHeader */}
+    </div>
+  );
+};
+
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -34,7 +76,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <Sidebar
           variant="sidebar"
           collapsible="icon"
-          className="border-r border-sidebar-border shadow-md"
+          className="border-r border-sidebar-border shadow-md sticky top-0 flex-shrink-0" // Added sticky top-0 and flex-shrink-0
         >
           <SidebarHeader className={cn(
             "border-b border-sidebar-border h-16 flex items-center px-2",
@@ -42,15 +84,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             "group-data-[state=collapsed]:group-hover:justify-start",
             "group-data-[state=collapsed]:not(group-hover):justify-center"
           )}>
-            <Link href="/dashboard" className={cn(
+            {/* Content of SidebarHeader now handled by DesktopSidebarHeaderContent logic or direct elements if simpler */}
+             <Link href="/dashboard" className={cn(
               "flex items-center gap-2",
+              "group-data-[state=collapsed]:not(group-hover):w-full group-data-[state=collapsed]:not(group-hover):justify-center"
             )}>
               <Stethoscope className="h-7 w-7 text-sidebar-primary shrink-0" />
               <span className={cn(
                 "text-xl font-semibold text-sidebar-foreground truncate",
-                "group-data-[state=collapsed]:not(group-hover):hidden", // Oculto si colapsado y SIN hover
-                "group-data-[state=expanded]:inline",                  // Visible si expandido
-                "group-data-[state=collapsed]:group-hover:inline"     // Visible si colapsado Y CON hover
+                "group-data-[state=collapsed]:not(group-hover):hidden",
+                "group-data-[state=expanded]:inline",
+                "group-data-[state=collapsed]:group-hover:inline"
               )}>
                 MediSchedule
               </span>
@@ -61,7 +105,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </SidebarContent>
           <SidebarFooter className="border-t border-sidebar-border p-2">
             <div className={cn(
-              "flex items-center gap-2 p-2 rounded-md bg-sidebar-accent/30",
+              "flex items-center gap-2 p-2 rounded-md bg-sidebar-accent/30", // Consider removing bg for cleaner look if preferred
               "group-data-[state=expanded]:justify-start",
               "group-data-[state=collapsed]:group-hover:justify-start",
               "group-data-[state=collapsed]:not(group-hover):justify-center"
@@ -87,16 +131,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <LogOut className="h-4 w-4 shrink-0" />
                 <span className={cn(
                   "ml-2 truncate",
-                  "group-data-[state=collapsed]:not(group-hover):hidden",
-                  "group-data-[state=expanded]:inline",
-                  "group-data-[state=collapsed]:group-hover:inline"
+                   "group-data-[state=collapsed]:not(group-hover):hidden",
+                   "group-data-[state=expanded]:inline",
+                   "group-data-[state=collapsed]:group-hover:inline"
                 )}>Cerrar Sesión</span>
               </Button>
             </Link>
           </SidebarFooter>
         </Sidebar>
 
-        <SidebarInset className="flex-1 flex flex-col overflow-y-auto">
+        <SidebarInset className="flex-1 flex flex-col overflow-y-auto h-screen"> {/* Added h-screen */}
           <AppHeader />
           <main className="flex-1 p-4 sm:p-6 lg:p-8">
             {children}
