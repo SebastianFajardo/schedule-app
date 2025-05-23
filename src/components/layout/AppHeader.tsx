@@ -13,8 +13,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
-import { SheetTitle } from "@/components/ui/sheet";
-import { useIsMobile } from "@/hooks/use-mobile"; // Necesario para el trigger móvil
+import { SheetTitle } from "@/components/ui/sheet"; // Keep for accessibility if mobile sidebar uses it
+import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 
 const mockUser = {
@@ -26,7 +26,7 @@ const mockUser = {
 const DesktopSidebarToggleButton = () => {
   const { toggleSidebar, state: sidebarPinnedState, isMobile: isSidebarContextMobile } = useSidebar();
 
-  if (isSidebarContextMobile) return null; // No mostrar en móvil según el contexto del sidebar
+  if (isSidebarContextMobile) return null;
 
   return (
     <Button
@@ -44,10 +44,10 @@ const DesktopSidebarToggleButton = () => {
 
 
 export default function AppHeader() {
-  const isMobileHook = useIsMobile(); // Para el trigger de móvil general
+  const isMobileHook = useIsMobile();
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-card px-4 sm:px-6 shadow-sm">
+    <header className="sticky top-0 z-30 flex h-20 items-center justify-between gap-4 border-b bg-card px-4 sm:px-6 shadow-sm">
       <div className="flex items-center gap-2">
         {/* Botón de control del Sidebar para escritorio */}
         <DesktopSidebarToggleButton />
@@ -62,15 +62,15 @@ export default function AppHeader() {
           </SidebarTrigger>
         )}
          <Link href="/" className="flex items-center gap-1 sm:gap-2">
-           <Stethoscope className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
-           <span className="text-lg sm:text-xl font-semibold text-primary hidden sm:inline">MediSchedule</span>
+           <Stethoscope className="h-7 w-7 sm:h-8 sm:w-8 text-primary" /> {/* Increased icon size slightly */}
+           <span className="text-xl sm:text-2xl font-semibold text-primary hidden sm:inline">MediSchedule</span> {/* Increased text size slightly */}
          </Link>
       </div>
 
       {mockUser ? (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="rounded-full h-9 w-9 p-0">
+            <Button variant="ghost" className="rounded-full h-9 w-9 p-0"> {/* Keep user icon button size consistent */}
               <User className="h-5 w-5" />
               <span className="sr-only">Alternar menú de usuario</span>
             </Button>
@@ -82,7 +82,7 @@ export default function AppHeader() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-               <Link href="/settings"> {/* Asumiendo que /settings será la página de configuración */}
+               <Link href="/settings">
                 <Settings className="mr-2 h-4 w-4" />
                 <span>Configuración</span>
               </Link>
