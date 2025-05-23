@@ -47,7 +47,7 @@ export default function AppHeader() {
   const isMobileHook = useIsMobile();
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-card px-4 sm:px-6 shadow-sm"> {/* Reverted height to h-16 */}
+    <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between gap-4 border-b bg-card px-4 sm:px-6 shadow-sm"> {/* Reverted height to h-16, Added shrink-0 */}
       <div className="flex items-center gap-2">
         {/* Botón de control del Sidebar para escritorio */}
         <DesktopSidebarToggleButton />
@@ -61,9 +61,9 @@ export default function AppHeader() {
             </Button>
           </SidebarTrigger>
         )}
-         <Link href="/" className="flex items-center gap-2"> {/* Reverted gap-1 sm:gap-2 to gap-2 for consistency */}
+         <Link href="/" className="flex items-center gap-1 sm:gap-2">
            <Stethoscope className="h-6 w-6 text-primary" /> {/* Reverted icon size */}
-           <span className="text-xl font-semibold text-primary hidden sm:inline">MediSchedule</span> {/* Reverted text size */}
+           <span className="text-lg sm:text-xl font-semibold text-primary hidden sm:inline">MediSchedule</span> {/* Reverted text size */}
          </Link>
       </div>
 
