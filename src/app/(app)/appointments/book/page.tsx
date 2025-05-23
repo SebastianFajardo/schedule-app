@@ -108,7 +108,6 @@ export default function BookAppointmentPage() {
 
 
   React.useEffect(() => {
-    // This effect runs when professionalId or specialtyId changes from the main form
     const professional = mockProfessionals.find(p => p.id === currentProfessionalId);
     if (professional && currentSpecialtyId && !professional.specialtyIds.includes(currentSpecialtyId)) {
         form.setValue("specialtyId", undefined, { shouldValidate: true }); 
@@ -116,8 +115,6 @@ export default function BookAppointmentPage() {
     if (!currentProfessionalId && currentSpecialtyId) { 
         form.setValue("specialtyId", undefined, { shouldValidate: true });
     }
-    // Reset date/time if professional or specialty changes in the main form
-    // This ensures that if the user closes the dialog and changes prof/spec, the calendar state is fresh
     setSelectedCalendarDate(undefined);
     setTimeSlotsForSelectedDate([]);
     form.setValue("selectedDateTimeSlot", "", { shouldValidate: false }); 
@@ -126,16 +123,13 @@ export default function BookAppointmentPage() {
   
   const handleFormProfessionalChange = (profId: string | undefined) => {
     form.setValue("professionalId", profId, { shouldValidate: true });
-    // No need to manage specialty here, useEffect above handles it
   };
 
   const handleFormSpecialtyChange = (specId: string | undefined) => {
     form.setValue("specialtyId", specId, { shouldValidate: true });
-    // No need to manage professional here, useEffect above handles it
   };
   
   const handleDateSelectInCalendar = (date: Date | undefined) => {
-    // This function is for selections WITHIN the dialog's calendar
     const professionalForDialog = mockProfessionals.find(p => p.id === form.watch("professionalId")); 
     if (!date || !professionalForDialog) { 
       setTimeSlotsForSelectedDate([]);
@@ -147,11 +141,11 @@ export default function BookAppointmentPage() {
     const professionalAvailability = professionalForDialog?.availability.find(a => a.date === dateString);
     
     setTimeSlotsForSelectedDate(professionalAvailability ? professionalAvailability.slots : []);
-    form.setValue("selectedDateTimeSlot", ""); // Clear previous time slot selection when a new date is picked in dialog
+    form.setValue("selectedDateTimeSlot", ""); 
   };
 
   const handleTimeSlotSelect = (time: string) => {
-    if (selectedCalendarDate) { // selectedCalendarDate is the one picked IN THE DIALOG
+    if (selectedCalendarDate) { 
       const combined = format(selectedCalendarDate, "yyyy-MM-dd") + "T" + time;
       form.setValue("selectedDateTimeSlot", combined, { shouldValidate: true });
       setIsDateTimePickerOpen(false); 
@@ -169,12 +163,8 @@ export default function BookAppointmentPage() {
     return !professionalDayAvailability || professionalDayAvailability.slots.length === 0;
   };
 
-  // Handlers for comboboxes INSIDE the dialog, which will update the main form's state
   const handleDialogProfessionalChange = (profId: string | undefined) => {
     form.setValue("professionalId", profId, { shouldValidate: true });
-    const professional = mockProfessionals.find(p => p.id === profId);
-    // If professional changes, specialty might become incompatible, useEffect on form's professionalId/specialtyId will handle reset
-    // Also reset date/time selections as availability changes
     setSelectedCalendarDate(undefined);
     setTimeSlotsForSelectedDate([]);
     form.setValue("selectedDateTimeSlot", "", { shouldValidate: false });
@@ -182,7 +172,6 @@ export default function BookAppointmentPage() {
 
   const handleDialogSpecialtyChange = (specId: string | undefined) => {
     form.setValue("specialtyId", specId, { shouldValidate: true }); 
-    // Reset date/time selection as availability might change (though not strictly implemented in mock data by specialty)
     setSelectedCalendarDate(undefined);
     setTimeSlotsForSelectedDate([]);
     form.setValue("selectedDateTimeSlot", "", { shouldValidate: false });
@@ -202,7 +191,7 @@ export default function BookAppointmentPage() {
       .sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime());
 
     if (futureAvailableDates.length > 0) {
-      handleDateSelectInCalendar(futureAvailableDates[0].dateObj); // This will set selectedCalendarDate and timeSlotsForSelectedDate
+      handleDateSelectInCalendar(futureAvailableDates[0].dateObj); 
       toast({
         title: "Fecha Encontrada",
         description: `Se seleccionó la próxima fecha disponible: ${format(futureAvailableDates[0].dateObj, "PPP", { locale: es })}`,
@@ -297,7 +286,7 @@ export default function BookAppointmentPage() {
                     <Combobox
                       options={professionalOptions}
                       value={field.value}
-                      onSelect={(value) => handleFormProfessionalChange(value)} // Updates main form
+                      onSelect={(value) => handleFormProfessionalChange(value)}
                       placeholder="Seleccione un profesional..."
                       searchPlaceholder="Buscar por nombre o documento..."
                       emptySearchMessage="Profesional no encontrado."
@@ -315,7 +304,7 @@ export default function BookAppointmentPage() {
                      <Combobox
                       options={availableSpecialtyOptionsForForm}
                       value={field.value}
-                      onSelect={(value) => handleFormSpecialtyChange(value)} // Updates main form
+                      onSelect={(value) => handleFormSpecialtyChange(value)}
                       placeholder="Seleccione una especialidad..."
                       searchPlaceholder="Buscar especialidad..."
                       emptySearchMessage="Especialidad no disponible."
@@ -334,17 +323,16 @@ export default function BookAppointmentPage() {
                     <FormLabel>Fecha y Hora de la Cita</FormLabel>
                     <Dialog open={isDateTimePickerOpen} onOpenChange={(open) => {
                         setIsDateTimePickerOpen(open);
-                        if (!open) { // When dialog closes, reset its internal date state if needed
+                        if (!open) { 
                             setSelectedCalendarDate(undefined);
                             setTimeSlotsForSelectedDate([]);
                         } else {
-                            // When dialog opens, if a date was already picked in form, try to reflect it in dialog calendar
                              if (field.value) {
                                 try {
                                     const [datePart] = field.value.split("T");
                                     const dateObj = parseISO(datePart);
-                                    handleDateSelectInCalendar(dateObj); // This will load slots for the date already in form
-                                } catch { /* ignore if not a valid date string */ }
+                                    handleDateSelectInCalendar(dateObj); 
+                                } catch { /* ignore */ }
                             }
                         }
                     }}>
@@ -375,7 +363,7 @@ export default function BookAppointmentPage() {
                               size="sm"
                               variant="outline"
                               onClick={findNextAvailableDateAndSelect}
-                              disabled={!currentProfessionalId} // Should be based on form's currentProfessionalId
+                              disabled={!currentProfessionalId}
                               className="mt-2 sm:mt-0 w-full sm:w-auto"
                             >
                               <SearchIconLucide className="mr-2 h-4 w-4" />
@@ -387,25 +375,25 @@ export default function BookAppointmentPage() {
                           </DialogDescription>
                         </DialogHeader>
                         
-                        <div className="flex-1 min-h-0 px-6 pt-4 pb-2"> {/* Main content area, scrollable */}
-                            <div className="grid sm:grid-cols-2 gap-4 mb-4">
-                                <FormItem className="flex flex-col"> {/* Not a FormField, just FormItem for layout */}
-                                    <FormLabel className="flex items-center gap-1"><Users className="h-4 w-4 text-muted-foreground"/> Profesional (Filtro Calendario)</FormLabel>
+                        <div className="flex-1 min-h-0 p-6 space-y-4"> {/* Main content area, scrollable */}
+                            <div className="grid sm:grid-cols-2 gap-4">
+                                <FormItem className="flex flex-col"> 
+                                    <FormLabel className="flex items-center gap-1"><Users className="h-4 w-4 text-muted-foreground"/> Profesional</FormLabel>
                                     <Combobox
                                       options={professionalOptions}
-                                      value={currentProfessionalId} // Uses form's currentProfessionalId
-                                      onSelect={(value) => handleDialogProfessionalChange(value)} // Updates form's currentProfessionalId
+                                      value={currentProfessionalId} 
+                                      onSelect={(value) => handleDialogProfessionalChange(value)} 
                                       placeholder="Seleccione un profesional..."
                                       searchPlaceholder="Buscar por nombre o documento..."
                                       emptySearchMessage="Profesional no encontrado."
                                     />
                                 </FormItem>
-                                <FormItem className="flex flex-col"> {/* Not a FormField, just FormItem for layout */}
-                                    <FormLabel className="flex items-center gap-1"><BriefcaseMedical className="h-4 w-4 text-muted-foreground"/> Especialidad (Filtro Calendario)</FormLabel>
+                                <FormItem className="flex flex-col"> 
+                                    <FormLabel className="flex items-center gap-1"><BriefcaseMedical className="h-4 w-4 text-muted-foreground"/> Especialidad</FormLabel>
                                     <Combobox
                                       options={availableSpecialtyOptionsForForm} 
-                                      value={currentSpecialtyId} // Uses form's currentSpecialtyId
-                                      onSelect={(value) => handleDialogSpecialtyChange(value)} // Updates form's currentSpecialtyId
+                                      value={currentSpecialtyId} 
+                                      onSelect={(value) => handleDialogSpecialtyChange(value)} 
                                       placeholder="Seleccione una especialidad..."
                                       searchPlaceholder="Buscar especialidad..."
                                       emptySearchMessage="Especialidad no disponible."
@@ -422,24 +410,24 @@ export default function BookAppointmentPage() {
                             )}
 
                             {currentProfessionalId && ( 
-                              <div className="flex flex-col md:flex-row gap-6 flex-grow min-h-0"> {/* This container also needs to manage flex for its children */}
-                                <div className="flex justify-center md:items-start md:w-1/2">
+                              <div className="flex flex-col md:flex-row gap-6"> 
+                                <div className="flex justify-center md:w-1/2">
                                     <Calendar
                                       mode="single"
-                                      selected={selectedCalendarDate} // This is the dialog's internal selected date
-                                      onSelect={handleDateSelectInCalendar} // This updates dialog's date and loads slots
-                                      disabled={isDateUnavailable} // Based on form's professionalId
+                                      selected={selectedCalendarDate} 
+                                      onSelect={handleDateSelectInCalendar} 
+                                      disabled={isDateUnavailable} 
                                       initialFocus
                                       locale={es}
                                       className="rounded-md border w-full" 
                                     />
                                 </div>
-                                <div className="flex flex-col flex-grow min-h-0 md:w-1/2"> {/* This makes the time slots area grow and scroll */}
+                                <div className="flex flex-col md:w-1/2"> 
                                   <h3 className="text-lg font-medium mb-2 text-center md:text-left flex-shrink-0">
                                     {selectedCalendarDate ? `Horas para ${format(selectedCalendarDate, "PPP", { locale: es })}` : "Seleccione una fecha"}
                                   </h3>
                                   {selectedCalendarDate && timeSlotsForSelectedDate.length > 0 && (
-                                    <ScrollArea className="flex-grow border rounded-md p-2"> 
+                                    <ScrollArea className="flex-1 border rounded-md p-2 h-48">  {/* Added flex-1 and fixed height */}
                                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                                         {timeSlotsForSelectedDate.map((time) => (
                                           <Button
@@ -569,7 +557,7 @@ export default function BookAppointmentPage() {
                   </FormItem>
                 )}
               />
-              <div className="flex flex-col sm:flex-row gap-2">
+              <div className="flex flex-col sm:flex-row gap-2 pt-4">
                 <Button type="submit" className="w-full sm:flex-1" disabled={form.formState.isSubmitting || !currentProfessionalId}>
                   {form.formState.isSubmitting ? "Enviando Solicitud..." : (
                     <>
@@ -578,7 +566,7 @@ export default function BookAppointmentPage() {
                     </>
                   )}
                 </Button>
-                <Link href="/appointments" className="w-full sm:flex-1">
+                <Link href="/appointments" className="flex w-full sm:flex-1">
                   <Button variant="outline" className="w-full">
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Volver al Listado
