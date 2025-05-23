@@ -1,7 +1,7 @@
 
 import type { LucideIcon } from 'lucide-react';
-import type { BookAppointmentFormSchema } from '@/lib/schemas'; // Import Zod schema
 import type { z } from 'zod';
+import type { BookAppointmentFormSchema } from '@/lib/schemas'; 
 
 export interface NavItem {
   title: string;
@@ -30,9 +30,9 @@ export interface Appointment {
   location?: string; 
   notes?: string;
   videoCallLink?: string;
-  patientName?: string;
-  doctorName?: string; 
-  specialtyName?: string;
+  patientName?: string; // Denormalized for easier display
+  doctorName?: string; // Denormalized for easier display
+  specialtyName?: string; // Denormalized for easier display
 }
 
 export interface ProfessionalAvailabilitySlot {

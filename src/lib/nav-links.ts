@@ -4,7 +4,8 @@ import {
   LayoutDashboard,
   Settings,
   CalendarDays,
-  CalendarPlus, // Added for booking
+  CalendarPlus,
+  ListChecks, // Icon for appointment list
 } from "lucide-react";
 
 export const navLinks: NavItem[] = [
@@ -14,18 +15,17 @@ export const navLinks: NavItem[] = [
     icon: LayoutDashboard,
   },
   {
-    title: "Agendar Cita", // New link
+    title: "Agendar Cita", 
     href: "/appointments/book",
     icon: CalendarPlus,
   },
   {
-    title: "Mis Citas (Simulado)", // Placeholder, no page created for this yet
-    href: "/appointments-placeholder",
-    icon: CalendarDays,
-    disabled: true,
+    title: "Listado de Citas",
+    href: "/appointments",
+    icon: ListChecks,
   },
   {
-    title: "Configuración (Simulado)", // Placeholder, no page created for this yet
+    title: "Configuración (Simulado)",
     href: "/settings-placeholder",
     icon: Settings,
     disabled: true,
