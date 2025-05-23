@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -17,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
-  CardDescription,
+  CardDescription as ShadcnCardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -120,7 +121,7 @@ export default function BookAppointmentPage() {
           <p>Paciente: {patientName}</p>
           <p>Profesional: {professionalName}</p>
           {specialtyName && <p>Especialidad: {specialtyName}</p>}
-          <p>Fecha: {format(data.appointmentDate, "PPP", { locale: es })} a las {data.appointmentTime}</p>
+          <p>Fecha: {data.appointmentDate ? format(data.appointmentDate, "PPP", { locale: es }) : 'N/A'} a las {data.appointmentTime}</p>
           <p>Tipo: {data.appointmentType === "presencial" ? "Presencial" : "Virtual"}</p>
         </div>
       ),
@@ -137,9 +138,9 @@ export default function BookAppointmentPage() {
             <CalendarIcon className="h-6 w-6" />
             Agendar Nueva Cita
           </CardTitle>
-          <CardDescription>
+          <ShadcnCardDescription>
             Complete el formulario para solicitar una nueva cita médica.
-          </CardDescription>
+          </ShadcnCardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
