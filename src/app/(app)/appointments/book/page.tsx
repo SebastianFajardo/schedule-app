@@ -245,7 +245,7 @@ export default function BookAppointmentPage() {
 
   return (
     <div className="container mx-auto py-8 px-4 md:px-6">
-      <Card className="max-w-2xl mx-auto shadow-xl">
+      <Card className="max-w-4xl mx-auto shadow-xl">
         <CardHeader>
           <CardTitle className="text-2xl font-bold tracking-tight text-primary flex items-center gap-2">
             <CalendarIcon className="h-6 w-6" />
@@ -324,8 +324,8 @@ export default function BookAppointmentPage() {
                     <Dialog open={isDateTimePickerOpen} onOpenChange={(open) => {
                         setIsDateTimePickerOpen(open);
                         if (!open) { 
-                            setSelectedCalendarDate(undefined);
-                            setTimeSlotsForSelectedDate([]);
+                            // setSelectedCalendarDate(undefined); // Keep selected date if dialog is closed without selection
+                            // setTimeSlotsForSelectedDate([]);
                         } else {
                              if (field.value) {
                                 try {
@@ -354,7 +354,10 @@ export default function BookAppointmentPage() {
                           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col p-0 overflow-y-auto">
+                      <DialogContent 
+                        className="max-w-3xl max-h-[90vh] flex flex-col p-0 overflow-y-auto"
+                        onCloseAutoFocus={(e) => e.preventDefault()} // Prevent focus shift to trigger button
+                      >
                         <DialogHeader className="p-6 pb-4 border-b sticky top-0 bg-background z-10 flex-shrink-0">
                           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                             <DialogTitle>Seleccionar Fecha y Hora</DialogTitle>
@@ -371,11 +374,11 @@ export default function BookAppointmentPage() {
                             </Button>
                           </div>
                           <DialogDescription className="pt-1">
-                            Ajuste el profesional o especialidad, luego elija un día y una hora.
+                            Ajuste el profesional o especialidad si es necesario, luego elija un día y una hora.
                           </DialogDescription>
                         </DialogHeader>
                         
-                        <div className="flex-1 min-h-0 p-6 space-y-4"> {/* Main content area, scrollable */}
+                        <div className="flex-1 min-h-0 p-6 space-y-4 overflow-y-auto"> 
                             <div className="grid sm:grid-cols-2 gap-4">
                                 <FormItem className="flex flex-col"> 
                                     <FormLabel className="flex items-center gap-1"><Users className="h-4 w-4 text-muted-foreground"/> Profesional</FormLabel>
@@ -411,7 +414,7 @@ export default function BookAppointmentPage() {
 
                             {currentProfessionalId && ( 
                               <div className="flex flex-col md:flex-row gap-6"> 
-                                <div className="flex justify-center md:w-1/2">
+                                <div className="flex justify-center md:items-start md:w-1/2">
                                     <Calendar
                                       mode="single"
                                       selected={selectedCalendarDate} 
@@ -422,12 +425,12 @@ export default function BookAppointmentPage() {
                                       className="rounded-md border w-full" 
                                     />
                                 </div>
-                                <div className="flex flex-col md:w-1/2"> 
+                                <div className="flex flex-col flex-1 min-h-0 md:w-1/2"> 
                                   <h3 className="text-lg font-medium mb-2 text-center md:text-left flex-shrink-0">
                                     {selectedCalendarDate ? `Horas para ${format(selectedCalendarDate, "PPP", { locale: es })}` : "Seleccione una fecha"}
                                   </h3>
                                   {selectedCalendarDate && timeSlotsForSelectedDate.length > 0 && (
-                                    <ScrollArea className="flex-1 border rounded-md p-2 h-48">  {/* Added flex-1 and fixed height */}
+                                    <ScrollArea className="flex-1 border rounded-md p-2 h-48">  
                                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                                         {timeSlotsForSelectedDate.map((time) => (
                                           <Button
