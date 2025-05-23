@@ -41,7 +41,7 @@ import { cn } from "@/lib/utils";
 import { BookAppointmentFormSchema, type BookAppointmentFormValues } from "@/lib/schemas";
 import { mockProfessionals, mockSpecialties, mockPatients } from "@/lib/data";
 import type { Professional, Specialty, Patient } from "@/types";
-import { CalendarIcon, CheckCircle, Send, Users, BriefcaseMedical, UserSquare2, Clock, X, Search } from "lucide-react";
+import { CalendarIcon, CheckCircle, Send, Users, BriefcaseMedical, UserSquare2, Clock, Search } from "lucide-react";
 import { format, parse, startOfDay, isBefore, isEqual, parseISO } from "date-fns";
 import { es } from 'date-fns/locale';
 import { useToast } from "@/hooks/use-toast";
@@ -91,18 +91,12 @@ export default function BookAppointmentPage() {
   const appointmentType = form.watch("appointmentType");
   const currentProfessionalId = form.watch("professionalId");
   const currentSpecialtyId = form.watch("specialtyId");
-  // const currentSelectedDateTimeSlot = form.watch("selectedDateTimeSlot"); // Not directly used for logic here
 
   const currentProfessional = React.useMemo(() => 
     mockProfessionals.find(p => p.id === currentProfessionalId), 
     [currentProfessionalId]
   );
 
-  const currentSpecialty = React.useMemo(() => 
-    mockSpecialties.find(s => s.id === currentSpecialtyId),
-    [currentSpecialtyId]
-  );
-  
   // Filter specialties based on selected professional FOR THE MAIN FORM
   const availableSpecialtyOptionsForForm = React.useMemo(() => {
     if (!currentProfessionalId) {
@@ -130,10 +124,8 @@ export default function BookAppointmentPage() {
         const professional = mockProfessionals.find(p => p.id === currentProfessionalId);
         if (professional && !professional.specialtyIds.includes(currentSpecialtyId)) {
             form.setValue("specialtyId", undefined, { shouldValidate: true }); 
-            // Date/time reset handled by the effect below
         }
     }
-     // If professional is cleared, clear specialty too
     if (!currentProfessionalId && currentSpecialtyId) {
         form.setValue("specialtyId", undefined, { shouldValidate: true });
     }
@@ -149,62 +141,57 @@ export default function BookAppointmentPage() {
 
   const handleFormProfessionalChange = (profId: string | undefined) => {
     form.setValue("professionalId", profId, { shouldValidate: true });
-    // Specialty and date/time reset is handled by the useEffects above
   };
 
   const handleFormSpecialtyChange = (specId: string | undefined) => {
     form.setValue("specialtyId", specId, { shouldValidate: true });
-    // Date/time reset is handled by the useEffect above
   };
   
   const handleDateSelectInCalendar = (date: Date | undefined) => {
-    if (!date || !currentProfessionalId) { // Use form's professionalId
+    if (!date || !currentProfessionalId) { 
       setTimeSlotsForSelectedDate([]);
       setSelectedCalendarDate(undefined);
       return;
     }
     setSelectedCalendarDate(date);
     const dateString = format(date, "yyyy-MM-dd");
-    const professional = mockProfessionals.find(p => p.id === currentProfessionalId); // Use form's professionalId
+    const professional = mockProfessionals.find(p => p.id === currentProfessionalId); 
     const professionalAvailability = professional?.availability.find(a => a.date === dateString);
     
     setTimeSlotsForSelectedDate(professionalAvailability ? professionalAvailability.slots : []);
-    form.setValue("selectedDateTimeSlot", ""); // Reset selected slot if date changes
+    form.setValue("selectedDateTimeSlot", ""); 
   };
 
   const handleTimeSlotSelect = (time: string) => {
     if (selectedCalendarDate) {
       const combined = format(selectedCalendarDate, "yyyy-MM-dd") + "T" + time;
       form.setValue("selectedDateTimeSlot", combined, { shouldValidate: true });
-      setIsDateTimePickerOpen(false); // Close dialog on time selection
+      setIsDateTimePickerOpen(false); 
     }
   };
 
   const isDateUnavailable = (date: Date): boolean => {
-    if (!currentProfessionalId) return true; // Use form's professionalId
+    if (!currentProfessionalId) return true; 
     if (isBefore(startOfDay(date), startOfDay(new Date()))) return true;
 
     const dateString = format(date, "yyyy-MM-dd");
-    const professional = mockProfessionals.find(p => p.id === currentProfessionalId); // Use form's professionalId
+    const professional = mockProfessionals.find(p => p.id === currentProfessionalId); 
     const professionalDayAvailability = professional?.availability.find(a => a.date === dateString);
     
     return !professionalDayAvailability || professionalDayAvailability.slots.length === 0;
   };
 
-  // Handlers for controls INSIDE the dialog that update the MAIN FORM fields
   const handleDialogProfessionalChange = (profId: string | undefined) => {
     form.setValue("professionalId", profId, { shouldValidate: true });
-    // Specialty and date/time reset is handled by the useEffects watching main form fields
   };
 
   const handleDialogSpecialtyChange = (specId: string | undefined) => {
     form.setValue("specialtyId", specId, { shouldValidate: true });
-    // Date/time reset is handled by the useEffects watching main form fields
   };
 
 
   async function onSubmit(data: BookAppointmentFormValues) {
-    await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000)); 
 
     const patientName = mockPatients.find(p => p.id === data.patientId)?.name || "N/A";
     const professionalName = mockProfessionals.find(p => p.id === data.professionalId)?.name || "N/A";
@@ -218,7 +205,7 @@ export default function BookAppointmentPage() {
             formattedDateTime = `${format(dateObj, "PPP", { locale: es })} a las ${timePart}`;
         } catch (e) {
             console.error("Error parsing date/time slot:", e);
-            formattedDateTime = data.selectedDateTimeSlot; // fallback
+            formattedDateTime = data.selectedDateTimeSlot; 
         }
     }
     
@@ -236,7 +223,6 @@ export default function BookAppointmentPage() {
       ),
       action: <CheckCircle className="text-green-500" />,
     });
-    // router.push("/appointments"); // Or some confirmation page
   }
 
   return (
@@ -345,9 +331,8 @@ export default function BookAppointmentPage() {
                         
                         <div className="flex flex-col flex-grow min-h-0 px-6 sm:px-0 pt-4 sm:pt-2">
                             <div className="grid sm:grid-cols-2 gap-4 mb-4">
-                                {/* Combobox for Professional INSIDE Dialog, controls main form field */}
                                 <FormItem className="flex flex-col">
-                                    <FormLabel className="flex items-center gap-1"><Users className="h-4 w-4 text-muted-foreground"/> Profesional (Filtro Calendario)</FormLabel>
+                                    <FormLabel className="flex items-center gap-1"><Users className="h-4 w-4 text-muted-foreground"/> Profesional</FormLabel>
                                     <Combobox
                                     options={professionalOptions}
                                     value={currentProfessionalId} 
@@ -357,9 +342,8 @@ export default function BookAppointmentPage() {
                                     emptySearchMessage="Profesional no encontrado."
                                     />
                                 </FormItem>
-                                {/* Combobox for Specialty INSIDE Dialog, controls main form field */}
                                 <FormItem className="flex flex-col">
-                                    <FormLabel className="flex items-center gap-1"><BriefcaseMedical className="h-4 w-4 text-muted-foreground"/> Especialidad (Filtro Calendario)</FormLabel>
+                                    <FormLabel className="flex items-center gap-1"><BriefcaseMedical className="h-4 w-4 text-muted-foreground"/> Especialidad</FormLabel>
                                     <Combobox
                                     options={availableSpecialtyOptionsForDialog}
                                     value={currentSpecialtyId} 
@@ -397,7 +381,7 @@ export default function BookAppointmentPage() {
                                     {selectedCalendarDate ? `Horas para ${format(selectedCalendarDate, "PPP", { locale: es })}` : "Seleccione una fecha"}
                                   </h3>
                                   {selectedCalendarDate && timeSlotsForSelectedDate.length > 0 && (
-                                    <ScrollArea className="flex-grow border rounded-md p-2 max-h-60 md:max-h-full">
+                                    <ScrollArea className="flex-grow border rounded-md p-2">
                                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                                         {timeSlotsForSelectedDate.map((time) => (
                                           <Button
@@ -431,7 +415,7 @@ export default function BookAppointmentPage() {
                     <FormMessage />
                     {!currentProfessionalId && (
                         <FormDescription>
-                            Para ver la disponibilidad, primero seleccione un profesional principal y luego haga clic en "Seleccione fecha y hora...".
+                            Para ver la disponibilidad, primero seleccione un profesional y luego haga clic en "Seleccione fecha y hora...".
                         </FormDescription>
                     )}
                   </FormItem>
