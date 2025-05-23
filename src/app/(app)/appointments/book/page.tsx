@@ -142,12 +142,10 @@ export default function BookAppointmentPage() {
 
   const handleFormProfessionalChange = (profId: string | undefined) => {
     form.setValue("professionalId", profId, { shouldValidate: true });
-    // When professional changes in the main form, also clear specialty if it's no longer valid
-    // This is partially handled by the useEffect above, but explicit clear here is safer.
     const professional = mockProfessionals.find(p => p.id === profId);
     if (profId && currentSpecialtyId && professional && !professional.specialtyIds.includes(currentSpecialtyId)) {
         form.setValue("specialtyId", undefined, { shouldValidate: true });
-    } else if (!profId) { // if professional is cleared
+    } else if (!profId) { 
         form.setValue("specialtyId", undefined, { shouldValidate: true });
     }
   };
@@ -181,9 +179,7 @@ export default function BookAppointmentPage() {
 
   const isDateUnavailable = (date: Date): boolean => {
     if (!currentProfessionalId) return true; 
-    // Disable past dates, allowing today
     if (isBefore(date, startOfDay(new Date())) && !isEqual(date, startOfDay(new Date()))) return true;
-
 
     const dateString = format(date, "yyyy-MM-dd");
     const professional = mockProfessionals.find(p => p.id === currentProfessionalId); 
@@ -194,11 +190,10 @@ export default function BookAppointmentPage() {
 
   const handleDialogProfessionalChange = (profId: string | undefined) => {
     form.setValue("professionalId", profId, { shouldValidate: true });
-     // If professional changes in dialog, specialty may need to be cleared if incompatible
     const professional = mockProfessionals.find(p => p.id === profId);
     if (profId && currentSpecialtyId && professional && !professional.specialtyIds.includes(currentSpecialtyId)) {
         form.setValue("specialtyId", undefined, { shouldValidate: true });
-    } else if (!profId) { // if professional is cleared from dialog
+    } else if (!profId) { 
         form.setValue("specialtyId", undefined, { shouldValidate: true });
     }
   };
@@ -230,6 +225,7 @@ export default function BookAppointmentPage() {
       toast({
         title: "Sin Disponibilidad",
         description: "No se encontraron fechas futuras disponibles para este profesional.",
+        variant: "destructive"
       });
     }
   };
@@ -268,6 +264,7 @@ export default function BookAppointmentPage() {
       ),
       action: <CheckCircle className="text-green-500" />,
     });
+    // router.push("/appointments"); // Or a confirmation page
   }
 
   return (
@@ -371,6 +368,7 @@ export default function BookAppointmentPage() {
                           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                             <DialogTitle>Seleccionar Profesional, Especialidad, Fecha y Hora</DialogTitle>
                             <Button
+                              type="button" // Ensure it's not a submit button
                               size="sm"
                               variant="outline"
                               onClick={findNextAvailableDateAndSelect}
@@ -386,7 +384,7 @@ export default function BookAppointmentPage() {
                           </DialogDescription>
                         </DialogHeader>
                         
-                        <div className="flex flex-col flex-grow min-h-0 px-6 sm:px-0 pt-4 sm:pt-2 pb-4 sm:pb-2"> {/* Added pb for spacing before footer */}
+                        <div className="flex flex-col flex-grow min-h-0 px-6 sm:px-0 pt-4 sm:pt-2 pb-4 sm:pb-2"> 
                             <div className="grid sm:grid-cols-2 gap-4 mb-4">
                                 <FormItem className="flex flex-col">
                                     <FormLabel className="flex items-center gap-1"><Users className="h-4 w-4 text-muted-foreground"/> Profesional</FormLabel>
@@ -433,18 +431,19 @@ export default function BookAppointmentPage() {
                                     className="rounded-md border self-start w-full"
                                     />
                                 </div>
-                                <div className="flex flex-col min-h-0 md:w-1/2"> {/* Ensured min-h-0 for flex-grow to work */}
-                                  <h3 className="text-lg font-medium mb-2 text-center md:text-left">
+                                <div className="flex flex-col flex-grow min-h-0 md:w-1/2 md:flex-grow-0"> {/* On mobile, this should grow */}
+                                  <h3 className="text-lg font-medium mb-2 text-center md:text-left flex-shrink-0">
                                     {selectedCalendarDate ? `Horas para ${format(selectedCalendarDate, "PPP", { locale: es })}` : "Seleccione una fecha"}
                                   </h3>
                                   {selectedCalendarDate && timeSlotsForSelectedDate.length > 0 && (
-                                    <ScrollArea className="flex-grow border rounded-md p-2"> {/* flex-grow should allow it to take space */}
+                                    <ScrollArea className="flex-grow border rounded-md p-2">
                                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                                         {timeSlotsForSelectedDate.map((time) => (
                                           <Button
                                             key={time}
                                             variant="outline"
                                             onClick={() => handleTimeSlotSelect(time)}
+                                            type="button" // Ensure it's not a submit button
                                           >
                                             {time}
                                           </Button>
@@ -464,7 +463,7 @@ export default function BookAppointmentPage() {
                         </div>
                         <DialogFooter className="mt-auto pt-4 border-t px-6 sm:px-0 pb-6 sm:pb-2 sticky bottom-0 bg-background z-10">
                             <DialogClose asChild>
-                                <Button variant="outline">Cancelar</Button>
+                                <Button variant="outline" type="button">Cancelar</Button>
                             </DialogClose>
                         </DialogFooter>
                       </DialogContent>
@@ -582,4 +581,3 @@ export default function BookAppointmentPage() {
     </div>
   );
 }
-
