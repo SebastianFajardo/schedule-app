@@ -41,8 +41,8 @@ import { cn } from "@/lib/utils";
 import { BookAppointmentFormSchema, type BookAppointmentFormValues } from "@/lib/schemas";
 import { mockProfessionals, mockSpecialties, mockPatients } from "@/lib/data";
 import type { Professional, Specialty, Patient } from "@/types";
-import { CalendarIcon, CheckCircle, Send, Users, BriefcaseMedical, UserSquare2, Clock, Search } from "lucide-react";
-import { format, parse, startOfDay, isBefore, isEqual, parseISO } from "date-fns";
+import { CalendarIcon, CheckCircle, Send, Users, BriefcaseMedical, UserSquare2, Clock, Search as SearchIconLucide } from "lucide-react";
+import { format, parse, startOfDay, isBefore, isEqual, parseISO, addDays } from "date-fns";
 import { es } from 'date-fns/locale';
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
@@ -126,6 +126,7 @@ export default function BookAppointmentPage() {
             form.setValue("specialtyId", undefined, { shouldValidate: true }); 
         }
     }
+    // If professional is cleared, specialty should also be cleared from the main form.
     if (!currentProfessionalId && currentSpecialtyId) {
         form.setValue("specialtyId", undefined, { shouldValidate: true });
     }
@@ -141,6 +142,14 @@ export default function BookAppointmentPage() {
 
   const handleFormProfessionalChange = (profId: string | undefined) => {
     form.setValue("professionalId", profId, { shouldValidate: true });
+    // When professional changes in the main form, also clear specialty if it's no longer valid
+    // This is partially handled by the useEffect above, but explicit clear here is safer.
+    const professional = mockProfessionals.find(p => p.id === profId);
+    if (profId && currentSpecialtyId && professional && !professional.specialtyIds.includes(currentSpecialtyId)) {
+        form.setValue("specialtyId", undefined, { shouldValidate: true });
+    } else if (!profId) { // if professional is cleared
+        form.setValue("specialtyId", undefined, { shouldValidate: true });
+    }
   };
 
   const handleFormSpecialtyChange = (specId: string | undefined) => {
@@ -172,7 +181,9 @@ export default function BookAppointmentPage() {
 
   const isDateUnavailable = (date: Date): boolean => {
     if (!currentProfessionalId) return true; 
-    if (isBefore(startOfDay(date), startOfDay(new Date()))) return true;
+    // Disable past dates, allowing today
+    if (isBefore(date, startOfDay(new Date())) && !isEqual(date, startOfDay(new Date()))) return true;
+
 
     const dateString = format(date, "yyyy-MM-dd");
     const professional = mockProfessionals.find(p => p.id === currentProfessionalId); 
@@ -183,19 +194,53 @@ export default function BookAppointmentPage() {
 
   const handleDialogProfessionalChange = (profId: string | undefined) => {
     form.setValue("professionalId", profId, { shouldValidate: true });
+     // If professional changes in dialog, specialty may need to be cleared if incompatible
+    const professional = mockProfessionals.find(p => p.id === profId);
+    if (profId && currentSpecialtyId && professional && !professional.specialtyIds.includes(currentSpecialtyId)) {
+        form.setValue("specialtyId", undefined, { shouldValidate: true });
+    } else if (!profId) { // if professional is cleared from dialog
+        form.setValue("specialtyId", undefined, { shouldValidate: true });
+    }
   };
 
   const handleDialogSpecialtyChange = (specId: string | undefined) => {
     form.setValue("specialtyId", specId, { shouldValidate: true });
   };
 
+  const findNextAvailableDateAndSelect = () => {
+    if (!currentProfessional || !currentProfessional.availability) {
+      toast({ title: "Información", description: "Por favor, seleccione un profesional primero." });
+      return;
+    }
+
+    const today = startOfDay(new Date());
+    const futureAvailableDates = currentProfessional.availability
+      .map(avail => ({ ...avail, dateObj: parseISO(avail.date) }))
+      .filter(avail => avail.slots.length > 0 && !isBefore(avail.dateObj, today))
+      .sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime());
+
+    if (futureAvailableDates.length > 0) {
+      handleDateSelectInCalendar(futureAvailableDates[0].dateObj);
+      toast({
+        title: "Fecha Encontrada",
+        description: `Se seleccionó la próxima fecha disponible: ${format(futureAvailableDates[0].dateObj, "PPP", { locale: es })}`,
+        action: <CheckCircle className="text-green-500" />,
+      });
+    } else {
+      toast({
+        title: "Sin Disponibilidad",
+        description: "No se encontraron fechas futuras disponibles para este profesional.",
+      });
+    }
+  };
+
 
   async function onSubmit(data: BookAppointmentFormValues) {
     await new Promise(resolve => setTimeout(resolve, 1000)); 
 
-    const patientName = mockPatients.find(p => p.id === data.patientId)?.name || "N/A";
-    const professionalName = mockProfessionals.find(p => p.id === data.professionalId)?.name || "N/A";
-    const specialtyName = mockSpecialties.find(s => s.id === data.specialtyId)?.name;
+    const patientName = patientOptions.find(p => p.value === data.patientId)?.label || "N/A";
+    const professionalName = professionalOptions.find(p => p.value === data.professionalId)?.label || "N/A";
+    const specialtyName = allSpecialtyOptions.find(s => s.value === data.specialtyId)?.label;
     
     let formattedDateTime = "N/A";
     if (data.selectedDateTimeSlot) {
@@ -322,14 +367,26 @@ export default function BookAppointmentPage() {
                         </Button>
                       </DialogTrigger>
                       <DialogContent className="max-w-3xl h-[90vh] flex flex-col p-0 sm:p-6 overflow-y-auto">
-                        <DialogHeader className="p-6 sm:p-0 pb-0 sm:pb-2 sticky top-0 bg-background z-10">
-                          <DialogTitle>Seleccionar Profesional, Especialidad, Fecha y Hora</DialogTitle>
-                          <DialogDescription>
+                        <DialogHeader className="p-6 sm:p-0 pb-0 sm:pb-2 sticky top-0 bg-background z-10 border-b">
+                          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                            <DialogTitle>Seleccionar Profesional, Especialidad, Fecha y Hora</DialogTitle>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={findNextAvailableDateAndSelect}
+                              disabled={!currentProfessionalId}
+                              className="mt-2 sm:mt-0 w-full sm:w-auto"
+                            >
+                              <SearchIconLucide className="mr-2 h-4 w-4" />
+                              Buscar Fecha Más Cercana
+                            </Button>
+                          </div>
+                          <DialogDescription className="pt-1">
                             Puede ajustar el profesional o especialidad para ver diferentes disponibilidades. Luego elija un día y una hora.
                           </DialogDescription>
                         </DialogHeader>
                         
-                        <div className="flex flex-col flex-grow min-h-0 px-6 sm:px-0 pt-4 sm:pt-2">
+                        <div className="flex flex-col flex-grow min-h-0 px-6 sm:px-0 pt-4 sm:pt-2 pb-4 sm:pb-2"> {/* Added pb for spacing before footer */}
                             <div className="grid sm:grid-cols-2 gap-4 mb-4">
                                 <FormItem className="flex flex-col">
                                     <FormLabel className="flex items-center gap-1"><Users className="h-4 w-4 text-muted-foreground"/> Profesional</FormLabel>
@@ -376,12 +433,12 @@ export default function BookAppointmentPage() {
                                     className="rounded-md border self-start w-full"
                                     />
                                 </div>
-                                <div className="flex flex-col min-h-0 md:w-1/2">
+                                <div className="flex flex-col min-h-0 md:w-1/2"> {/* Ensured min-h-0 for flex-grow to work */}
                                   <h3 className="text-lg font-medium mb-2 text-center md:text-left">
                                     {selectedCalendarDate ? `Horas para ${format(selectedCalendarDate, "PPP", { locale: es })}` : "Seleccione una fecha"}
                                   </h3>
                                   {selectedCalendarDate && timeSlotsForSelectedDate.length > 0 && (
-                                    <ScrollArea className="flex-grow border rounded-md p-2">
+                                    <ScrollArea className="flex-grow border rounded-md p-2"> {/* flex-grow should allow it to take space */}
                                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                                         {timeSlotsForSelectedDate.map((time) => (
                                           <Button
