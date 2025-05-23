@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -33,14 +32,20 @@ import { Textarea } from "@/components/ui/textarea";
 import { Combobox, type ComboboxOption } from "@/components/ui/combobox";
 import { cn } from "@/lib/utils";
 import { BookAppointmentFormSchema, type BookAppointmentFormValues } from "@/lib/schemas";
-import { mockProfessionals, mockSpecialties } from "@/lib/data";
-import { CalendarIcon, CheckCircle, Send, Users, BriefcaseMedical } from "lucide-react";
+import { mockProfessionals, mockSpecialties, mockPatients } from "@/lib/data";
+import { CalendarIcon, CheckCircle, Send, Users, BriefcaseMedical, UserSquare2 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from 'date-fns/locale';
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 
 // Mock data mapping for Combobox
+const patientOptions: ComboboxOption[] = mockPatients.map(patient => ({
+  value: patient.id,
+  label: patient.name,
+  document: patient.document,
+}));
+
 const professionalOptions: ComboboxOption[] = mockProfessionals.map(prof => ({
   value: prof.id,
   label: prof.name,
@@ -60,7 +65,7 @@ export default function BookAppointmentPage() {
   const form = useForm<BookAppointmentFormValues>({
     resolver: zodResolver(BookAppointmentFormSchema),
     defaultValues: {
-      patientName: "",
+      patientId: undefined,
       professionalId: undefined,
       specialtyId: undefined,
       appointmentType: undefined,
@@ -103,6 +108,7 @@ export default function BookAppointmentPage() {
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
 
+    const patientName = mockPatients.find(p => p.id === data.patientId)?.name || "N/A";
     const professionalName = mockProfessionals.find(p => p.id === data.professionalId)?.name || "N/A";
     const specialtyName = mockSpecialties.find(s => s.id === data.specialtyId)?.name;
     
@@ -111,7 +117,7 @@ export default function BookAppointmentPage() {
       title: "Cita Solicitada Exitosamente",
       description: (
         <div className="space-y-1">
-          <p>Paciente: {data.patientName}</p>
+          <p>Paciente: {patientName}</p>
           <p>Profesional: {professionalName}</p>
           {specialtyName && <p>Especialidad: {specialtyName}</p>}
           <p>Fecha: {format(data.appointmentDate, "PPP", { locale: es })} a las {data.appointmentTime}</p>
@@ -125,8 +131,6 @@ export default function BookAppointmentPage() {
 
   return (
     <div className="container mx-auto py-8 px-4 md:px-6">
-      {/* Note: Role-based access (Agendador, Administrador) is conceptual here. 
-          In a real app, this page's access would be controlled server-side. */}
       <Card className="max-w-2xl mx-auto shadow-xl">
         <CardHeader>
           <CardTitle className="text-2xl font-bold tracking-tight text-primary flex items-center gap-2">
@@ -142,13 +146,18 @@ export default function BookAppointmentPage() {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <FormField
                 control={form.control}
-                name="patientName"
+                name="patientId"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nombre del Paciente</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ej: Juan Pérez" {...field} />
-                    </FormControl>
+                  <FormItem className="flex flex-col">
+                    <FormLabel className="flex items-center gap-1"><UserSquare2 className="h-4 w-4 text-muted-foreground"/> Nombre del Paciente</FormLabel>
+                    <Combobox
+                      options={patientOptions}
+                      value={field.value}
+                      onSelect={field.onChange}
+                      placeholder="Seleccione un paciente..."
+                      searchPlaceholder="Buscar por nombre o cédula..."
+                      emptySearchMessage="Paciente no encontrado."
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -166,7 +175,6 @@ export default function BookAppointmentPage() {
                         value={field.value}
                         onSelect={(value) => {
                             field.onChange(value);
-                            // Reset specialty if it's not compatible with the new professional
                             const prof = mockProfessionals.find(p => p.id === value);
                             const currentSpecId = form.getValues("specialtyId");
                             if (prof && currentSpecId && !prof.specialtyIds.includes(currentSpecId)) {

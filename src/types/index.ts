@@ -12,9 +12,17 @@ export interface NavItem {
   role?: 'patient' | 'staff' | 'admin'; // Example roles
 }
 
+export interface Patient {
+  id: string;
+  name: string;
+  document: string;
+  email?: string;
+  phone?: string;
+}
+
 export interface Appointment {
   id: string;
-  patientName: string;
+  patientId: string; // Changed from patientName to patientId
   professionalId: string; 
   specialtyId?: string;  
   dateTime: Date;
@@ -22,14 +30,12 @@ export interface Appointment {
   location?: string; 
   notes?: string;
   videoCallLink?: string;
+  // Derived or populated fields (optional, for display purposes, not direct storage)
+  patientName?: string;
+  doctorName?: string; 
+  specialtyName?: string;
 }
 
-export interface Patient {
-  id: string;
-  name: string;
-  email: string;
-  phone?: string;
-}
 
 export interface Professional {
   id: string;

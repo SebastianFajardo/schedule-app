@@ -3,18 +3,18 @@ import type { Appointment, Patient, Professional, Specialty } from "@/types";
 import { addDays, subDays } from "date-fns";
 
 export const mockPatients: Patient[] = [
-  { id: "pat1", name: "Carlos Ruiz", email: "carlos.ruiz@example.com", phone: "555-0101" },
-  { id: "pat2", name: "Ana García", email: "ana.garcia@example.com", phone: "555-0102" },
-  { id: "pat3", name: "Luis Fernández", email: "luis.fernandez@example.com", phone: "555-0103" },
-  { id: "pat4", name: "Sofía López", email: "sofia.lopez@example.com" },
-  { id: "pat5", name: "Javier Martínez", email: "javier.martinez@example.com", phone: "555-0105" },
+  { id: "pat1", name: "Carlos Ruiz", document: "12345678A", email: "carlos.ruiz@example.com", phone: "555-0101" },
+  { id: "pat2", name: "Ana García", document: "87654321B", email: "ana.garcia@example.com", phone: "555-0102" },
+  { id: "pat3", name: "Luis Fernández", document: "11223344C", email: "luis.fernandez@example.com", phone: "555-0103" },
+  { id: "pat4", name: "Sofía López", document: "44332211D", email: "sofia.lopez@example.com" },
+  { id: "pat5", name: "Javier Martínez", document: "55667788E", email: "javier.martinez@example.com", phone: "555-0105" },
 ];
 
 
 export const mockAppointments: Appointment[] = [
   {
     id: "app1",
-    patientName: "Carlos Ruiz",
+    patientId: "pat1", // Carlos Ruiz
     professionalId: "prof1", // Dra. Ana Pérez
     specialtyId: "spec1", // Pediatría
     dateTime: addDays(new Date(), 2), 
@@ -25,7 +25,7 @@ export const mockAppointments: Appointment[] = [
   },
   {
     id: "app2",
-    patientName: "Ana García",
+    patientId: "pat2", // Ana García
     professionalId: "prof2", // Dr. Juan Torres
     specialtyId: "spec2", // Cardiología
     dateTime: addDays(new Date(), 5), 
@@ -34,7 +34,7 @@ export const mockAppointments: Appointment[] = [
   },
   {
     id: "app3",
-    patientName: "Luis Fernández",
+    patientId: "pat3", // Luis Fernández
     professionalId: "prof1", // Dra. Ana Pérez
     specialtyId: "spec1", // Pediatría
     dateTime: subDays(new Date(), 7), 
@@ -44,7 +44,7 @@ export const mockAppointments: Appointment[] = [
   },
   {
     id: "app4",
-    patientName: "Sofía López",
+    patientId: "pat4", // Sofía López
     professionalId: "prof3", // Dra. Laura Vargas
     specialtyId: "spec3", // Neurología
     dateTime: addDays(new Date(), 1), 
@@ -54,7 +54,7 @@ export const mockAppointments: Appointment[] = [
   },
   {
     id: "app5",
-    patientName: "Javier Martínez",
+    patientId: "pat5", // Javier Martínez
     professionalId: "prof2", // Dr. Juan Torres
     specialtyId: "spec2", // Cardiología
     dateTime: subDays(new Date(), 3), 
@@ -64,7 +64,7 @@ export const mockAppointments: Appointment[] = [
   },
   {
     id: "app6",
-    patientName: "Carlos Ruiz",
+    patientId: "pat1", // Carlos Ruiz
     professionalId: "prof2", // Dr. Juan Torres
     specialtyId: "spec2", // Cardiología
     dateTime: subDays(new Date(), 30), 
@@ -73,7 +73,7 @@ export const mockAppointments: Appointment[] = [
   },
    {
     id: "app7",
-    patientName: "Nuevo Paciente Test", // Changed name for clarity
+    patientId: "pat3", // Luis Fernandez, changed for consistency with mockPatients
     professionalId: "prof4", // Dr. Genérico
     specialtyId: "spec4", // Medicina General
     dateTime: addDays(new Date(), 3),
@@ -83,7 +83,7 @@ export const mockAppointments: Appointment[] = [
   },
   {
     id: "app8",
-    patientName: "Federico Seguimiento",
+    patientId: "pat2", // Ana García, changed for consistency
     professionalId: "prof1", // Dra. Pérez
     specialtyId: "spec1", // Pediatría
     dateTime: subDays(new Date(), 1),

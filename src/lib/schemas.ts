@@ -2,7 +2,7 @@
 import { z } from "zod";
 
 export const BookAppointmentFormSchema = z.object({
-  patientName: z.string().min(3, { message: "El nombre del paciente es requerido (mínimo 3 caracteres)." }),
+  patientId: z.string({ required_error: "Debe seleccionar un paciente." }).min(1, {message: "Debe seleccionar un paciente."}),
   professionalId: z.string({ required_error: "Debe seleccionar un profesional." }).min(1, {message: "Debe seleccionar un profesional."}),
   specialtyId: z.string().optional(),
   appointmentType: z.enum(["presencial", "virtual"], {
