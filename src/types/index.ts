@@ -1,5 +1,7 @@
 
 import type { LucideIcon } from 'lucide-react';
+import type { BookAppointmentFormSchema } from '@/lib/schemas'; // Import Zod schema
+import type { z } from 'zod';
 
 export interface NavItem {
   title: string;
@@ -30,3 +32,6 @@ export interface Patient {
   phone?: string;
   // Add other patient-specific fields
 }
+
+// Type for the book appointment form values, inferred from Zod schema
+export type BookAppointmentFormValues = z.infer<typeof BookAppointmentFormSchema>;
