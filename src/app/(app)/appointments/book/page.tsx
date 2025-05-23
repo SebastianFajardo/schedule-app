@@ -30,13 +30,28 @@ import {
 } from "@/components/ui/popover";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
+import { Combobox, type ComboboxOption } from "@/components/ui/combobox";
 import { cn } from "@/lib/utils";
 import { BookAppointmentFormSchema, type BookAppointmentFormValues } from "@/lib/schemas";
-import { CalendarIcon, CheckCircle, Send } from "lucide-react";
+import { mockProfessionals, mockSpecialties } from "@/lib/data";
+import { CalendarIcon, CheckCircle, Send, Users, BriefcaseMedical } from "lucide-react";
 import { format } from "date-fns";
 import { es } from 'date-fns/locale';
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+
+// Mock data mapping for Combobox
+const professionalOptions: ComboboxOption[] = mockProfessionals.map(prof => ({
+  value: prof.id,
+  label: prof.name,
+  document: prof.document,
+}));
+
+const specialtyOptions: ComboboxOption[] = mockSpecialties.map(spec => ({
+  value: spec.id,
+  label: spec.name,
+}));
+
 
 export default function BookAppointmentPage() {
   const { toast } = useToast();
@@ -46,9 +61,9 @@ export default function BookAppointmentPage() {
     resolver: zodResolver(BookAppointmentFormSchema),
     defaultValues: {
       patientName: "",
-      doctorService: "",
-      specialty: "",
-      appointmentType: undefined, // "presencial" or "virtual"
+      professionalId: undefined,
+      specialtyId: undefined,
+      appointmentType: undefined,
       appointmentDate: undefined,
       appointmentTime: "",
       location: "",
@@ -58,30 +73,60 @@ export default function BookAppointmentPage() {
   });
 
   const appointmentType = form.watch("appointmentType");
+  const selectedProfessionalId = form.watch("professionalId");
+
+  // Filter specialties based on selected professional
+  const availableSpecialtyOptions = React.useMemo(() => {
+    if (!selectedProfessionalId) {
+      return specialtyOptions; // Show all if no professional is selected
+    }
+    const professional = mockProfessionals.find(p => p.id === selectedProfessionalId);
+    if (professional) {
+      return specialtyOptions.filter(spec => professional.specialtyIds.includes(spec.value));
+    }
+    return [];
+  }, [selectedProfessionalId]);
+
+  // Reset specialty if selected professional changes and current specialty is not available
+  React.useEffect(() => {
+    const currentSpecialtyId = form.getValues("specialtyId");
+    if (currentSpecialtyId && selectedProfessionalId) {
+        const professional = mockProfessionals.find(p => p.id === selectedProfessionalId);
+        if (professional && !professional.specialtyIds.includes(currentSpecialtyId)) {
+            form.setValue("specialtyId", undefined, { shouldValidate: true });
+        }
+    }
+  }, [selectedProfessionalId, form]);
+
 
   async function onSubmit(data: BookAppointmentFormValues) {
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
 
+    const professionalName = mockProfessionals.find(p => p.id === data.professionalId)?.name || "N/A";
+    const specialtyName = mockSpecialties.find(s => s.id === data.specialtyId)?.name;
+    
     console.log("Datos de la cita:", data);
     toast({
       title: "Cita Solicitada Exitosamente",
       description: (
         <div className="space-y-1">
           <p>Paciente: {data.patientName}</p>
+          <p>Profesional: {professionalName}</p>
+          {specialtyName && <p>Especialidad: {specialtyName}</p>}
           <p>Fecha: {format(data.appointmentDate, "PPP", { locale: es })} a las {data.appointmentTime}</p>
           <p>Tipo: {data.appointmentType === "presencial" ? "Presencial" : "Virtual"}</p>
         </div>
       ),
       action: <CheckCircle className="text-green-500" />,
     });
-    // Optionally, reset form or redirect
-    // form.reset();
-    // router.push("/dashboard"); // Example redirect
+    // form.reset(); // Optionally reset form
   }
 
   return (
     <div className="container mx-auto py-8 px-4 md:px-6">
+      {/* Note: Role-based access (Agendador, Administrador) is conceptual here. 
+          In a real app, this page's access would be controlled server-side. */}
       <Card className="max-w-2xl mx-auto shadow-xl">
         <CardHeader>
           <CardTitle className="text-2xl font-bold tracking-tight text-primary flex items-center gap-2">
@@ -112,26 +157,45 @@ export default function BookAppointmentPage() {
               <div className="grid sm:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
-                  name="doctorService"
+                  name="professionalId"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Doctor o Servicio</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Ej: Dra. Ana López, Chequeo General" {...field} />
-                      </FormControl>
+                    <FormItem className="flex flex-col">
+                      <FormLabel className="flex items-center gap-1"><Users className="h-4 w-4 text-muted-foreground"/> Profesional</FormLabel>
+                      <Combobox
+                        options={professionalOptions}
+                        value={field.value}
+                        onSelect={(value) => {
+                            field.onChange(value);
+                            // Reset specialty if it's not compatible with the new professional
+                            const prof = mockProfessionals.find(p => p.id === value);
+                            const currentSpecId = form.getValues("specialtyId");
+                            if (prof && currentSpecId && !prof.specialtyIds.includes(currentSpecId)) {
+                                form.setValue("specialtyId", undefined, { shouldValidate: true });
+                            }
+                        }}
+                        placeholder="Seleccione un profesional..."
+                        searchPlaceholder="Buscar por nombre o documento..."
+                        emptySearchMessage="Profesional no encontrado."
+                      />
                       <FormMessage />
                     </FormItem>
                   )}
                 />
                 <FormField
                   control={form.control}
-                  name="specialty"
+                  name="specialtyId"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Especialidad (Opcional)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Ej: Cardiología, Pediatría" {...field} />
-                      </FormControl>
+                    <FormItem className="flex flex-col">
+                      <FormLabel className="flex items-center gap-1"><BriefcaseMedical className="h-4 w-4 text-muted-foreground"/> Especialidad (Opcional)</FormLabel>
+                       <Combobox
+                        options={availableSpecialtyOptions}
+                        value={field.value}
+                        onSelect={field.onChange}
+                        placeholder="Seleccione una especialidad..."
+                        searchPlaceholder="Buscar especialidad..."
+                        emptySearchMessage="Especialidad no encontrada o no disponible para el profesional."
+                        disabled={!selectedProfessionalId || availableSpecialtyOptions.length === 0}
+                      />
                       <FormMessage />
                     </FormItem>
                   )}
@@ -205,7 +269,7 @@ export default function BookAppointmentPage() {
                             selected={field.value}
                             onSelect={field.onChange}
                             disabled={(date) =>
-                              date < new Date(new Date().setHours(0,0,0,0)) // Disable past dates
+                              date < new Date(new Date().setHours(0,0,0,0)) 
                             }
                             initialFocus
                             locale={es}
@@ -298,4 +362,3 @@ export default function BookAppointmentPage() {
     </div>
   );
 }
-

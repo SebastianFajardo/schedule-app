@@ -12,15 +12,14 @@ export interface NavItem {
   role?: 'patient' | 'staff' | 'admin'; // Example roles
 }
 
-// Minimal types, can be expanded as needed
 export interface Appointment {
   id: string;
   patientName: string;
-  doctorName?: string; // Optional if it's a general service
-  specialty?: string;  // Optional
+  professionalId: string; 
+  specialtyId?: string;  
   dateTime: Date;
   status: 'Programada' | 'Completada' | 'Cancelada' | 'Pendiente de Aprobación' | 'No Asistió';
-  location?: string; // Could be physical or "Telemedicina"
+  location?: string; 
   notes?: string;
   videoCallLink?: string;
 }
@@ -30,8 +29,18 @@ export interface Patient {
   name: string;
   email: string;
   phone?: string;
-  // Add other patient-specific fields
 }
 
-// Type for the book appointment form values, inferred from Zod schema
+export interface Professional {
+  id: string;
+  name: string;
+  document: string;
+  specialtyIds: string[]; // IDs of specialties the professional has
+}
+
+export interface Specialty {
+  id: string;
+  name: string;
+}
+
 export type BookAppointmentFormValues = z.infer<typeof BookAppointmentFormSchema>;
