@@ -105,19 +105,32 @@ export default function BookAppointmentPage() {
   );
   
   // Filter specialties based on selected professional
-  const availableSpecialtyOptions = React.useMemo(() => {
-    if (!currentProfessional) {
-      return allSpecialtyOptions; // Or an empty array if you prefer no specialties shown without a professional
+  const availableSpecialtyOptionsForForm = React.useMemo(() => {
+    if (!currentProfessionalId) {
+      return allSpecialtyOptions;
     }
-    return allSpecialtyOptions.filter(spec => currentProfessional.specialtyIds.includes(spec.value));
-  }, [currentProfessional]);
+    const professional = mockProfessionals.find(p => p.id === currentProfessionalId);
+    if (!professional) return allSpecialtyOptions;
+    return allSpecialtyOptions.filter(spec => professional.specialtyIds.includes(spec.value));
+  }, [currentProfessionalId]);
 
-  // Reset specialty if selected professional changes and current specialty is not available
+  // For Dialog
+  const availableSpecialtyOptionsForDialog = React.useMemo(() => {
+    if (!currentProfessionalId) { // Based on form's professionalId
+      return allSpecialtyOptions;
+    }
+    const professional = mockProfessionals.find(p => p.id === currentProfessionalId);
+    if (!professional) return allSpecialtyOptions;
+    return allSpecialtyOptions.filter(spec => professional.specialtyIds.includes(spec.value));
+  }, [currentProfessionalId]);
+
+
+  // Reset specialty if selected professional (from main form) changes and current specialty is not available
   React.useEffect(() => {
     if (currentProfessionalId && currentSpecialtyId) {
         const professional = mockProfessionals.find(p => p.id === currentProfessionalId);
         if (professional && !professional.specialtyIds.includes(currentSpecialtyId)) {
-            form.setValue("specialtyId", undefined, { shouldValidate: false }); 
+            form.setValue("specialtyId", undefined, { shouldValidate: true }); 
             setSelectedCalendarDate(undefined);
             setTimeSlotsForSelectedDate([]);
             form.setValue("selectedDateTimeSlot", "");
@@ -125,7 +138,7 @@ export default function BookAppointmentPage() {
     }
   }, [currentProfessionalId, currentSpecialtyId, form]);
 
-  // Reset date/time if professional or specialty changes
+  // Reset date/time if professional or specialty (from main form) changes
   React.useEffect(() => {
     setSelectedCalendarDate(undefined);
     setTimeSlotsForSelectedDate([]);
@@ -133,38 +146,33 @@ export default function BookAppointmentPage() {
   }, [currentProfessionalId, currentSpecialtyId, form]);
 
 
-  const handleProfessionalChange = (profId: string | undefined) => {
+  const handleFormProfessionalChange = (profId: string | undefined) => {
     form.setValue("professionalId", profId, { shouldValidate: true });
-    // Reset specialty when professional changes, but only if new professional doesn't have current specialty
     const professional = mockProfessionals.find(p => p.id === profId);
     if (professional && currentSpecialtyId && !professional.specialtyIds.includes(currentSpecialtyId)) {
-        form.setValue("specialtyId", undefined);
-    } else if (!profId) { // if professional is cleared, clear specialty too
-        form.setValue("specialtyId", undefined);
+        form.setValue("specialtyId", undefined, { shouldValidate: true });
+    } else if (!profId) {
+        form.setValue("specialtyId", undefined, { shouldValidate: true });
     }
-    setSelectedCalendarDate(undefined);
-    setTimeSlotsForSelectedDate([]);
-    form.setValue("selectedDateTimeSlot", "");
+    // Date/time reset is handled by the useEffect above
   };
 
-  const handleSpecialtyChange = (specId: string | undefined) => {
+  const handleFormSpecialtyChange = (specId: string | undefined) => {
     form.setValue("specialtyId", specId, { shouldValidate: true });
-    setSelectedCalendarDate(undefined);
-    setTimeSlotsForSelectedDate([]);
-    form.setValue("selectedDateTimeSlot", "");
+    // Date/time reset is handled by the useEffect above
   };
   
   const handleDateSelectInCalendar = (date: Date | undefined) => {
-    if (!date || !currentProfessional) {
+    if (!date || !currentProfessionalId) { // Use form's professionalId
       setTimeSlotsForSelectedDate([]);
       setSelectedCalendarDate(undefined);
       return;
     }
     setSelectedCalendarDate(date);
     const dateString = format(date, "yyyy-MM-dd");
-    const professionalAvailability = currentProfessional.availability.find(a => a.date === dateString);
+    const professional = mockProfessionals.find(p => p.id === currentProfessionalId); // Use form's professionalId
+    const professionalAvailability = professional?.availability.find(a => a.date === dateString);
     
-    // TODO: Filter by specialty if currentSpecialtyId is set and professional availability includes specialty info
     setTimeSlotsForSelectedDate(professionalAvailability ? professionalAvailability.slots : []);
     form.setValue("selectedDateTimeSlot", ""); // Reset selected slot if date changes
   };
@@ -178,28 +186,43 @@ export default function BookAppointmentPage() {
   };
 
   const isDateUnavailable = (date: Date): boolean => {
-    if (!currentProfessional) return true; 
+    if (!currentProfessionalId) return true; // Use form's professionalId
     if (isBefore(startOfDay(date), startOfDay(new Date()))) return true;
 
     const dateString = format(date, "yyyy-MM-dd");
-    const professionalDayAvailability = currentProfessional.availability.find(a => a.date === dateString);
+    const professional = mockProfessionals.find(p => p.id === currentProfessionalId); // Use form's professionalId
+    const professionalDayAvailability = professional?.availability.find(a => a.date === dateString);
     
     return !professionalDayAvailability || professionalDayAvailability.slots.length === 0;
   };
 
-  const handleRemoveProfessionalFilter = () => {
-    form.setValue("professionalId", undefined, {shouldValidate: true});
-    form.setValue("specialtyId", undefined, {shouldValidate: true}); // Also clear specialty
-    form.setValue("selectedDateTimeSlot", "", {shouldValidate: true});
-    setSelectedCalendarDate(undefined);
-    setTimeSlotsForSelectedDate([]);
+  // Handlers for controls INSIDE the dialog
+  const handleDialogProfessionalChange = (profId: string | undefined) => {
+    form.setValue("professionalId", profId, { shouldValidate: true });
+    const professional = mockProfessionals.find(p => p.id === profId);
+    // If current specialty is not compatible with new professional, clear specialty
+    if (professional && currentSpecialtyId && !professional.specialtyIds.includes(currentSpecialtyId)) {
+      form.setValue("specialtyId", undefined, { shouldValidate: true });
+    } else if (!profId) { // if professional is cleared, clear specialty too
+      form.setValue("specialtyId", undefined, { shouldValidate: true });
+    }
+    // Date/time reset is handled by the useEffect watching form's professionalId/specialtyId
   };
 
-  const handleRemoveSpecialtyFilter = () => {
+  const handleDialogSpecialtyChange = (specId: string | undefined) => {
+    form.setValue("specialtyId", specId, { shouldValidate: true });
+    // Date/time reset is handled by the useEffect watching form's professionalId/specialtyId
+  };
+
+  const handleRemoveProfessionalFilterInDialog = () => {
+    form.setValue("professionalId", undefined, {shouldValidate: true});
+    form.setValue("specialtyId", undefined, {shouldValidate: true}); // Also clear specialty
+    // Date/time reset is handled by useEffect
+  };
+
+  const handleRemoveSpecialtyFilterInDialog = () => {
     form.setValue("specialtyId", undefined, {shouldValidate: true});
-    form.setValue("selectedDateTimeSlot", "", {shouldValidate: true});
-    setSelectedCalendarDate(undefined);
-    setTimeSlotsForSelectedDate([]);
+    // Date/time reset is handled by useEffect
   };
 
 
@@ -236,6 +259,7 @@ export default function BookAppointmentPage() {
       ),
       action: <CheckCircle className="text-green-500" />,
     });
+    // router.push("/appointments"); // Or some confirmation page
   }
 
   return (
@@ -272,7 +296,43 @@ export default function BookAppointmentPage() {
                 )}
               />
               
-              {/* The FormField for professionalId and specialtyId are now INSIDE the Dialog */}
+              <FormField
+                control={form.control}
+                name="professionalId"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel className="flex items-center gap-1"><Users className="h-4 w-4 text-muted-foreground"/> Profesional</FormLabel>
+                    <Combobox
+                      options={professionalOptions}
+                      value={field.value}
+                      onSelect={(value) => handleFormProfessionalChange(value)}
+                      placeholder="Seleccione un profesional..."
+                      searchPlaceholder="Buscar por nombre o documento..."
+                      emptySearchMessage="Profesional no encontrado."
+                    />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="specialtyId"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel className="flex items-center gap-1"><BriefcaseMedical className="h-4 w-4 text-muted-foreground"/> Especialidad (Opcional)</FormLabel>
+                     <Combobox
+                      options={availableSpecialtyOptionsForForm}
+                      value={field.value}
+                      onSelect={(value) => handleFormSpecialtyChange(value)}
+                      placeholder="Seleccione una especialidad..."
+                      searchPlaceholder="Buscar especialidad..."
+                      emptySearchMessage="Especialidad no disponible."
+                      disabled={!currentProfessionalId || availableSpecialtyOptionsForForm.length === 0}
+                    />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               
               <FormField
                 control={form.control}
@@ -282,7 +342,11 @@ export default function BookAppointmentPage() {
                     <FormLabel>Fecha y Hora de la Cita</FormLabel>
                     <Dialog open={isDateTimePickerOpen} onOpenChange={setIsDateTimePickerOpen}>
                       <DialogTrigger asChild>
-                        <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !field.value && "text-muted-foreground")}>
+                        <Button 
+                          variant="outline" 
+                          className={cn("w-full justify-start text-left font-normal", !field.value && "text-muted-foreground")}
+                          disabled={!currentProfessionalId} // Disable if no professional is selected in the main form
+                        >
                           {field.value ? 
                             (() => {
                                 try {
@@ -296,79 +360,67 @@ export default function BookAppointmentPage() {
                       </DialogTrigger>
                       <DialogContent className="max-w-3xl h-[90vh] flex flex-col p-0 sm:p-6">
                         <DialogHeader className="p-6 sm:p-0 pb-0 sm:pb-2">
-                          <DialogTitle>Seleccionar Profesional, Fecha y Hora</DialogTitle>
+                          <DialogTitle>Seleccionar Profesional, Especialidad, Fecha y Hora</DialogTitle>
                           <DialogDescription>
-                            Elija un profesional, luego un día disponible y una hora para su cita.
+                            Puede ajustar el profesional o especialidad para ver diferentes disponibilidades. Luego elija un día y una hora.
                           </DialogDescription>
                         </DialogHeader>
                         
                         <div className="grid sm:grid-cols-2 gap-4 px-6 sm:px-0 pt-4 sm:pt-2">
-                            <FormField
-                              control={form.control}
-                              name="professionalId"
-                              render={({ field: profField }) => (
-                                <FormItem className="flex flex-col">
-                                  <FormLabel className="flex items-center gap-1"><Users className="h-4 w-4 text-muted-foreground"/> Profesional</FormLabel>
-                                  <Combobox
-                                    options={professionalOptions}
-                                    value={profField.value}
-                                    onSelect={(value) => handleProfessionalChange(value)}
-                                    placeholder="Seleccione un profesional..."
-                                    searchPlaceholder="Buscar por nombre o documento..."
-                                    emptySearchMessage="Profesional no encontrado."
-                                  />
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            <FormField
-                              control={form.control}
-                              name="specialtyId"
-                              render={({ field: specField }) => (
-                                <FormItem className="flex flex-col">
-                                  <FormLabel className="flex items-center gap-1"><BriefcaseMedical className="h-4 w-4 text-muted-foreground"/> Especialidad (Opcional)</FormLabel>
-                                   <Combobox
-                                    options={availableSpecialtyOptions}
-                                    value={specField.value}
-                                    onSelect={(value) => handleSpecialtyChange(value)}
-                                    placeholder="Seleccione una especialidad..."
-                                    searchPlaceholder="Buscar especialidad..."
-                                    emptySearchMessage="Especialidad no disponible."
-                                    disabled={!currentProfessionalId || availableSpecialtyOptions.length === 0}
-                                  />
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
+                            {/* Combobox for Professional INSIDE Dialog, controls main form field */}
+                            <FormItem className="flex flex-col">
+                                <FormLabel className="flex items-center gap-1"><Users className="h-4 w-4 text-muted-foreground"/> Profesional (Filtro Calendario)</FormLabel>
+                                <Combobox
+                                options={professionalOptions}
+                                value={currentProfessionalId} // Read from main form state
+                                onSelect={(value) => handleDialogProfessionalChange(value)} // Updates main form state
+                                placeholder="Seleccione un profesional..."
+                                searchPlaceholder="Buscar por nombre o documento..."
+                                emptySearchMessage="Profesional no encontrado."
+                                />
+                            </FormItem>
+                            {/* Combobox for Specialty INSIDE Dialog, controls main form field */}
+                            <FormItem className="flex flex-col">
+                                <FormLabel className="flex items-center gap-1"><BriefcaseMedical className="h-4 w-4 text-muted-foreground"/> Especialidad (Filtro Calendario)</FormLabel>
+                                <Combobox
+                                options={availableSpecialtyOptionsForDialog}
+                                value={currentSpecialtyId} // Read from main form state
+                                onSelect={(value) => handleDialogSpecialtyChange(value)} // Updates main form state
+                                placeholder="Seleccione una especialidad..."
+                                searchPlaceholder="Buscar especialidad..."
+                                emptySearchMessage="Especialidad no disponible."
+                                disabled={!currentProfessionalId || availableSpecialtyOptionsForDialog.length === 0}
+                                />
+                            </FormItem>
                         </div>
                         
                         <div className="flex flex-wrap gap-2 my-4 px-6 sm:px-0 items-center">
-                            {currentProfessional && (
+                            {currentProfessional && ( // Reads from main form professional
                                 <Badge variant="secondary" className="p-2 text-sm">
                                     Profesional: {currentProfessional.name}
-                                    <Button variant="ghost" size="sm" className="ml-1 h-auto p-0.5" onClick={handleRemoveProfessionalFilter}>
+                                    <Button variant="ghost" size="sm" className="ml-1 h-auto p-0.5" onClick={handleRemoveProfessionalFilterInDialog}>
                                         <X className="h-3 w-3"/>
                                     </Button>
                                 </Badge>
                             )}
-                            {currentSpecialty && (
+                            {currentSpecialty && currentProfessionalId && ( // Reads from main form specialty
                                 <Badge variant="secondary" className="p-2 text-sm">
                                     Especialidad: {currentSpecialty.name}
-                                    <Button variant="ghost" size="sm" className="ml-1 h-auto p-0.5" onClick={handleRemoveSpecialtyFilter}>
+                                    <Button variant="ghost" size="sm" className="ml-1 h-auto p-0.5" onClick={handleRemoveSpecialtyFilterInDialog}>
                                         <X className="h-3 w-3"/>
                                     </Button>
                                 </Badge>
                             )}
                         </div>
 
-                        {!currentProfessionalId && (
+                        {!currentProfessionalId && ( // Check main form professionalId
                             <div className="flex flex-col items-center justify-center flex-1 text-muted-foreground px-6 sm:px-0">
                                 <Users className="h-12 w-12 mb-2"/>
                                 <p className="text-center">Por favor, seleccione un profesional para ver la disponibilidad.</p>
                             </div>
                         )}
 
-                        {currentProfessionalId && (
+                        {currentProfessionalId && ( // Check main form professionalId
                           <div className="grid md:grid-cols-2 gap-6 flex-1 min-h-0 px-6 sm:px-0 pb-6 sm:pb-0">
                             <div className="flex justify-center md:items-start">
                                 <Calendar
@@ -378,7 +430,7 @@ export default function BookAppointmentPage() {
                                 disabled={isDateUnavailable}
                                 initialFocus
                                 locale={es}
-                                className="rounded-md border self-start w-full sm:w-auto" // Make calendar take full width on small, auto on larger
+                                className="rounded-md border self-start w-full sm:w-auto"
                                 />
                             </div>
                             <div className="flex flex-col min-h-0">
@@ -419,7 +471,7 @@ export default function BookAppointmentPage() {
                     <FormMessage />
                     {!currentProfessionalId && (
                         <FormDescription>
-                            Para ver la disponibilidad, primero seleccione un profesional y luego haga clic en "Seleccione fecha y hora...".
+                            Para ver la disponibilidad, primero seleccione un profesional principal y luego haga clic en "Seleccione fecha y hora...".
                         </FormDescription>
                     )}
                   </FormItem>
